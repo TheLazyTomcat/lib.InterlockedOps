@@ -69,30 +69,39 @@ functions
     Dec
     Add
     Sub
+    Neg
+    Not
+    And
+    Or
+    Xor
+
     Exchange
     ExchangeAdd
     ExchangeSub
+  ExchangeNeg
+  ExchangeNot
+  ExchangeAnd
+  ExchangeOr
+  ExchangeXor
     CompareExchange
-    
-  And
-  Or
-  Xor
+
+  BitTest
   BitTestAndSet
   BitTestAndReset
   BitTestAndComplement
 
-  InterlockedLoad
-  InterlockedSave
+  Load
+  Save
 
 CmpExch in 128bit (64bit system only)
 }
 const
-  IO_64BIT_VARS = {$IFDEF AllowVal64}True{$ELSE}False{$ENDIF};
+  ILO_64BIT_VARS = {$IFDEF AllowVal64}True{$ELSE}False{$ENDIF};
 
 type
-  EIOException = class(Exception);
+  EILOException = class(Exception);
 
-  EIOUnsupportedInstruction = class(EIOException);
+  EILOUnsupportedInstruction = class(EILOException);
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -186,25 +195,135 @@ Function InterlockedSub(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF C
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                              Interlocked negation
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedNeg(var I: UInt8): UInt8; overload;
+Function InterlockedNeg(var I: Int8): Int8; overload;
+
+Function InterlockedNeg(var I: UInt16): UInt16; overload;
+Function InterlockedNeg(var I: Int16): Int16; overload;
+
+Function InterlockedNeg(var I: UInt32): UInt32; overload;
+Function InterlockedNeg(var I: Int32): Int32; overload;
+
+{$IFDEF AllowVal64}
+Function InterlockedNeg(var I: UInt64): UInt64; overload;
+Function InterlockedNeg(var I: Int64): Int64; overload;
+{$ENDIF}
+
+Function InterlockedNeg(var I: Pointer): Pointer; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                            Interlocked logical not
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedNot(var I: UInt8): UInt8; overload;
+Function InterlockedNot(var I: Int8): Int8; overload;
+
+Function InterlockedNot(var I: UInt16): UInt16; overload;
+Function InterlockedNot(var I: Int16): Int16; overload;
+
+Function InterlockedNot(var I: UInt32): UInt32; overload;
+Function InterlockedNot(var I: Int32): Int32; overload;
+
+{$IFDEF AllowVal64}
+Function InterlockedNot(var I: UInt64): UInt64; overload;
+Function InterlockedNot(var I: Int64): Int64; overload;
+{$ENDIF}
+
+Function InterlockedNot(var I: Pointer): Pointer; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                            Interlocked logical and
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8; overload;
+Function InterlockedAnd(var A: Int8; B: Int8): Int8; overload;
+
+Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16; overload;
+Function InterlockedAnd(var A: Int16; B: Int16): Int16; overload;
+
+Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32; overload;
+Function InterlockedAnd(var A: Int32; B: Int32): Int32; overload;
+
+{$IFDEF AllowVal64}
+Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64; overload;
+Function InterlockedAnd(var A: Int64; B: Int64): Int64; overload;
+{$ENDIF}
+
+Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                             Interlocked logical or
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedOr(var A: UInt8; B: UInt8): UInt8; overload;
+Function InterlockedOr(var A: Int8; B: Int8): Int8; overload;
+
+Function InterlockedOr(var A: UInt16; B: UInt16): UInt16; overload;
+Function InterlockedOr(var A: Int16; B: Int16): Int16; overload;
+
+Function InterlockedOr(var A: UInt32; B: UInt32): UInt32; overload;
+Function InterlockedOr(var A: Int32; B: Int32): Int32; overload;
+
+{$IFDEF AllowVal64}
+Function InterlockedOr(var A: UInt64; B: UInt64): UInt64; overload;
+Function InterlockedOr(var A: Int64; B: Int64): Int64; overload;
+{$ENDIF}
+
+Function InterlockedOr(var A: Pointer; B: Pointer): Pointer; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                             Interlocked logical xor
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedXor(var A: UInt8; B: UInt8): UInt8; overload;
+Function InterlockedXor(var A: Int8; B: Int8): Int8; overload;
+
+Function InterlockedXor(var A: UInt16; B: UInt16): UInt16; overload;
+Function InterlockedXor(var A: Int16; B: Int16): Int16; overload;
+
+Function InterlockedXor(var A: UInt32; B: UInt32): UInt32; overload;
+Function InterlockedXor(var A: Int32; B: Int32): Int32; overload;
+
+{$IFDEF AllowVal64}
+Function InterlockedXor(var A: UInt64; B: UInt64): UInt64; overload;
+Function InterlockedXor(var A: Int64; B: Int64): Int64; overload;
+{$ENDIF}
+
+Function InterlockedXor(var A: Pointer; B: Pointer): Pointer; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                               Interlocked exchange
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedExchange(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8; overload;
+Function InterlockedExchange(var A: Int8; B: Int8): Int8; overload;
 
-Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedExchange(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16; overload;
+Function InterlockedExchange(var A: Int16; B: Int16): Int16; overload;
 
-Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedExchange(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32; overload;
+Function InterlockedExchange(var A: Int32; B: Int32): Int32; overload;
 
 {$IFDEF AllowVal64}
-Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64; overload;
+Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload;
 {$ENDIF}
 
-Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -297,7 +416,7 @@ implementation
 uses
   SimpleCPUID;
 
-Function _InterlockedCompareExchange8(var Dest: UInt8; Exch,Comp: UInt8; out Exchanged: ByteBool): UInt8; register; assembler;
+Function _iCMPXCHG8(var Dest: UInt8; Exch,Comp: UInt8; out Exchanged: ByteBool): UInt8; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -321,7 +440,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function _InterlockedCompareExchange16(var Dest: UInt16; Exch,Comp: UInt16; out Exchanged: ByteBool): UInt16; register; assembler;
+Function _iCMPXCHG16(var Dest: UInt16; Exch,Comp: UInt16; out Exchanged: ByteBool): UInt16; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -343,7 +462,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function _InterlockedCompareExchange32(var Dest: UInt32; Exch,Comp: UInt32; out Exchanged: ByteBool): UInt32; register; assembler;
+Function _iCMPXCHG32(var Dest: UInt32; Exch,Comp: UInt32; out Exchanged: ByteBool): UInt32; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -366,7 +485,7 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF AllowVal64}
-Function _InterlockedCompareExchange64(var Dest: UInt64; Exch: UInt64; Comp: UInt64; out Exchanged: ByteBool): UInt64; register; assembler;
+Function _iCMPXCHG64(var Dest: UInt64; Exch: UInt64; Comp: UInt64; out Exchanged: ByteBool): UInt64; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -406,7 +525,7 @@ end;
 
 //==============================================================================
 
-Function _InterlockedExchangeAdd8(var A: UInt8; B: UInt8): UInt8; register; assembler;
+Function _iXADD8(var A: UInt8; B: UInt8): UInt8; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -424,7 +543,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function _InterlockedExchangeAdd16(var A: UInt16; B: UInt16): UInt16; register; assembler;
+Function _iXADD16(var A: UInt16; B: UInt16): UInt16; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -442,7 +561,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function _InterlockedExchangeAdd32(var A: UInt32; B: UInt32): UInt32; register; assembler;
+Function _iXADD32(var A: UInt32; B: UInt32): UInt32; register; assembler;
 asm
 {$IFDEF x64}
   {$IFDEF Windows}
@@ -461,7 +580,7 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF AllowVal64}
-Function _InterlockedExchangeAdd64(var A: UInt64; B: UInt64): UInt64; {$IFDEF x64} register; assembler;
+Function _iXADD64(var A: UInt64; B: UInt64): UInt64; {$IFDEF x64} register; assembler;
 asm
   {$IFDEF Windows}
     LOCK  XADD  qword ptr [RCX], RDX
@@ -478,7 +597,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange64(A,B + Result,Result,Exchanged) = Result;
+until _iCMPXCHG64(A,B + Result,Result,Exchanged) = Result;
 end;
 {$IFDEF OverflowChecks}{$Q+}{$ENDIF}
 {$ENDIF}
@@ -494,42 +613,42 @@ end;
 
 Function InterlockedIncrement(var I: UInt8): UInt8;
 begin
-Result := UInt8(_InterlockedExchangeAdd8(I,1) + 1);
+Result := UInt8(_iXADD8(I,1) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int8): Int8;
 begin
-Result := Int8(Int8(_InterlockedExchangeAdd8(UInt8(I),1)) + 1);
+Result := Int8(Int8(_iXADD8(UInt8(I),1)) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt16): UInt16;
 begin
-Result := UInt16(_InterlockedExchangeAdd16(I,1) + 1);
+Result := UInt16(_iXADD16(I,1) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int16): Int16;
 begin
-Result := Int16(Int16(_InterlockedExchangeAdd16(UInt16(I),1)) + 1);
+Result := Int16(Int16(_iXADD16(UInt16(I),1)) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt32): UInt32;
 begin
-Result := UInt32(_InterlockedExchangeAdd32(I,1) + 1);
+Result := UInt32(_iXADD32(I,1) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int32): Int32;
 begin
-Result := Int32(Int32(_InterlockedExchangeAdd32(UInt32(I),1)) + 1);
+Result := Int32(Int32(_iXADD32(UInt32(I),1)) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -538,14 +657,14 @@ end;
 
 Function InterlockedIncrement(var I: UInt64): UInt64;
 begin
-Result := UInt64(_InterlockedExchangeAdd64(I,1) + 1);
+Result := UInt64(_iXADD64(I,1) + 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int64): Int64;
 begin
-Result := Int64(Int64(_InterlockedExchangeAdd64(UInt64(I),1)) + 1);
+Result := Int64(Int64(_iXADD64(UInt64(I),1)) + 1);
 end;
 
 {$ENDIF}
@@ -555,9 +674,9 @@ end;
 Function InterlockedIncrement(var I: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(I),1) + 1);
+  Result := Pointer(_iXADD64(UInt64(I),1) + 1);
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(I),1) + 1);
+  Result := Pointer(_iXADD32(UInt32(I),1) + 1);
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -575,42 +694,42 @@ end;
 
 Function InterlockedDecrement(var I: UInt8): UInt8;
 begin
-Result := UInt8(_InterlockedExchangeAdd8(I,UInt8(-1)) - 1);
+Result := UInt8(_iXADD8(I,UInt8(-1)) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int8): Int8;
 begin
-Result := Int8(Int8(_InterlockedExchangeAdd8(UInt8(I),UInt8(-1))) - 1);
+Result := Int8(Int8(_iXADD8(UInt8(I),UInt8(-1))) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt16): UInt16;
 begin
-Result := UInt16(_InterlockedExchangeAdd16(I,UInt16(-1)) - 1);
+Result := UInt16(_iXADD16(I,UInt16(-1)) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int16): Int16;
 begin
-Result := Int16(Int16(_InterlockedExchangeAdd16(UInt16(I),UInt16(-1))) - 1);
+Result := Int16(Int16(_iXADD16(UInt16(I),UInt16(-1))) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt32): UInt32;
 begin
-Result := UInt32(_InterlockedExchangeAdd32(I,UInt32(-1)) - 1);
+Result := UInt32(_iXADD32(I,UInt32(-1)) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int32): Int32;
 begin
-Result := Int32(Int32(_InterlockedExchangeAdd32(UInt32(I),UInt32(-1))) - 1);
+Result := Int32(Int32(_iXADD32(UInt32(I),UInt32(-1))) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -619,14 +738,14 @@ end;
 
 Function InterlockedDecrement(var I: UInt64): UInt64;
 begin
-Result := UInt64(_InterlockedExchangeAdd64(I,UInt64(-1)) - 1);
+Result := UInt64(_iXADD64(I,UInt64(-1)) - 1);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int64): Int64;
 begin
-Result := Int64(Int64(_InterlockedExchangeAdd64(UInt64(I),UInt64(-1))) - 1);
+Result := Int64(Int64(_iXADD64(UInt64(I),UInt64(-1))) - 1);
 end;
 
 {$ENDIF}
@@ -636,9 +755,9 @@ end;
 Function InterlockedDecrement(var I: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(I),UInt64(-1)) - 1);
+  Result := Pointer(_iXADD64(UInt64(I),UInt64(-1)) - 1);
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(I),UInt32(-1)) - 1);
+  Result := Pointer(_iXADD32(UInt32(I),UInt32(-1)) - 1);
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -656,42 +775,42 @@ end;
 
 Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8;
 begin
-Result := UInt8(_InterlockedExchangeAdd8(A,B) + B);
+Result := UInt8(_iXADD8(A,B) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int8; B: Int8): Int8;
 begin
-Result := Int8(Int8(_InterlockedExchangeAdd8(UInt8(A),UInt8(B))) + B);
+Result := Int8(Int8(_iXADD8(UInt8(A),UInt8(B))) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16;
 begin
-Result := UInt16(_InterlockedExchangeAdd16(A,B) + B);
+Result := UInt16(_iXADD16(A,B) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int16; B: Int16): Int16;
 begin
-Result := Int16(Int16(_InterlockedExchangeAdd16(UInt16(A),UInt16(B))) + B);
+Result := Int16(Int16(_iXADD16(UInt16(A),UInt16(B))) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32;
 begin
-Result := UInt32(_InterlockedExchangeAdd32(A,B) + B);
+Result := UInt32(_iXADD32(A,B) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int32; B: Int32): Int32;
 begin
-Result := Int32(Int32(_InterlockedExchangeAdd32(UInt32(A),UInt32(B))) + B);
+Result := Int32(Int32(_iXADD32(UInt32(A),UInt32(B))) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -700,14 +819,14 @@ end;
 
 Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64;
 begin
-Result := UInt64(_InterlockedExchangeAdd64(A,B) + B);
+Result := UInt64(_iXADD64(A,B) + B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int64; B: Int64): Int64;
 begin
-Result := Int64(Int64(_InterlockedExchangeAdd64(UInt64(A),UInt64(B))) + B);
+Result := Int64(Int64(_iXADD64(UInt64(A),UInt64(B))) + B);
 end;
 
 {$ENDIF}
@@ -717,9 +836,9 @@ end;
 Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(B)) + UInt64(B));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)) + UInt64(B));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(B)) + UInt64(B));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)) + UInt64(B));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -730,9 +849,9 @@ end;
 Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(B)) + UInt64(B));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)) + UInt64(B));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(B)) + UInt64(B));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)) + UInt64(B));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -750,42 +869,42 @@ end;
 
 Function InterlockedSub(var A: UInt8; B: UInt8): UInt8;
 begin
-Result := UInt8(_InterlockedExchangeAdd8(A,UInt8(-Int8(B))) - B);
+Result := UInt8(_iXADD8(A,UInt8(-Int8(B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int8; B: Int8): Int8;
 begin
-Result := Int8(Int8(_InterlockedExchangeAdd8(UInt8(A),UInt8(-B))) - B);
+Result := Int8(Int8(_iXADD8(UInt8(A),UInt8(-B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt16; B: UInt16): UInt16;
 begin
-Result := UInt16(_InterlockedExchangeAdd16(A,UInt16(-Int16(B))) - B);
+Result := UInt16(_iXADD16(A,UInt16(-Int16(B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int16; B: Int16): Int16;
 begin
-Result := Int16(Int16(_InterlockedExchangeAdd16(UInt16(A),UInt16(-B))) - B);
+Result := Int16(Int16(_iXADD16(UInt16(A),UInt16(-B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt32; B: UInt32): UInt32;
 begin
-Result := UInt32(_InterlockedExchangeAdd32(A,UInt32(-Int32(B))) - B);
+Result := UInt32(_iXADD32(A,UInt32(-Int32(B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int32; B: Int32): Int32;
 begin
-Result := Int32(Int32(_InterlockedExchangeAdd32(UInt32(A),UInt32(-B))) - B);
+Result := Int32(Int32(_iXADD32(UInt32(A),UInt32(-B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -794,14 +913,14 @@ end;
 
 Function InterlockedSub(var A: UInt64; B: UInt64): UInt64;
 begin
-Result := UInt64(_InterlockedExchangeAdd64(A,UInt64(-Int64(B))) - B);
+Result := UInt64(_iXADD64(A,UInt64(-Int64(B))) - B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int64; B: Int64): Int64;
 begin
-Result := Int64(Int64(_InterlockedExchangeAdd64(UInt64(A),UInt64(-B))) - B);
+Result := Int64(Int64(_iXADD64(UInt64(A),UInt64(-B))) - B);
 end;
 
 {$ENDIF}
@@ -811,9 +930,9 @@ end;
 Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(-B)) - UInt64(B));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(-B)) - UInt64(B));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(-B)) - UInt32(B));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(-B)) - UInt32(B));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -824,15 +943,630 @@ end;
 Function InterlockedSub(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(-Int64(B))) - UInt64(B));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(-Int64(B))) - UInt64(B));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(-Int32(B))) - UInt32(B));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(-Int32(B))) - UInt32(B));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
 
 {$IFDEF OverflowChecks}{$Q+}{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                              Interlocked negation
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedNeg(var I: UInt8): UInt8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG8(I,UInt8(-Int8(Result)),Result,Exchanged) = Result;
+Result := UInt8(-Int8(Result));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: Int8): Int8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int8(_iCMPXCHG8(UInt8(I),UInt8(-Result),UInt8(Result),Exchanged)) = Result;
+Result := -Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: UInt16): UInt16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG16(I,UInt16(-Int16(Result)),Result,Exchanged) = Result;
+Result := UInt16(-Int16(Result));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: Int16): Int16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int16(_iCMPXCHG16(UInt16(I),UInt16(-Result),UInt16(Result),Exchanged)) = Result;
+Result := -Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: UInt32): UInt32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG32(I,UInt32(-Int32(Result)),Result,Exchanged) = Result;
+Result := UInt32(-Int32(Result));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: Int32): Int32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int32(_iCMPXCHG32(UInt32(I),UInt32(-Result),UInt32(Result),Exchanged)) = Result;
+Result := -Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedNeg(var I: UInt64): UInt64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG64(I,UInt64(-Int64(Result)),Result,Exchanged) = Result;
+Result := UInt64(-Int64(Result));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: Int64): Int64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int64(_iCMPXCHG64(UInt64(I),UInt64(-Result),UInt64(Result),Exchanged)) = Result;
+Result := -Result;
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNeg(var I: Pointer): Pointer;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+{$IF SizeOf(Pointer) = 8}
+until Pointer(_iCMPXCHG64(UInt64(I),UInt64(-Int64(Result)),UInt64(Result),Exchanged)) = Result;
+Result := Pointer(-Int64(Result));
+{$ELSEIF SizeOf(Pointer) = 4}
+until Pointer(_iCMPXCHG32(UInt32(I),UInt32(-Int32(Result)),UInt32(Result),Exchanged)) = Result;
+Result := Pointer(-Int32(Result));
+{$ELSE}
+  {$MESSAGE FATAL 'Unsupported size of pointer.'}
+{$IFEND}
+end;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                            Interlocked logical not
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedNot(var I: UInt8): UInt8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG8(I,not Result,Result,Exchanged) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Int8): Int8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int8(_iCMPXCHG8(UInt8(I),UInt8(not Result),UInt8(Result),Exchanged)) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: UInt16): UInt16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG16(I,not Result,Result,Exchanged) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Int16): Int16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int16(_iCMPXCHG16(UInt16(I),UInt16(not Result),UInt16(Result),Exchanged)) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: UInt32): UInt32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG32(I,not Result,Result,Exchanged) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Int32): Int32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int32(_iCMPXCHG32(UInt32(I),UInt32(not Result),UInt32(Result),Exchanged)) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedNot(var I: UInt64): UInt64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until _iCMPXCHG64(I,not Result,Result,Exchanged) = Result;
+Result := not Result;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Int64): Int64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+until Int64(_iCMPXCHG64(UInt64(I),UInt64(not Result),UInt64(Result),Exchanged)) = Result;
+Result := not Result;
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Pointer): Pointer;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := I;
+{$IF SizeOf(Pointer) = 8}
+until Pointer(_iCMPXCHG64(UInt64(I),not UInt64(Result),UInt64(Result),Exchanged)) = Result;
+Result := Pointer(not UInt64(Result));
+{$ELSEIF SizeOf(Pointer) = 4}
+until Pointer(_iCMPXCHG32(UInt32(I),not UInt32(Result),UInt32(Result),Exchanged)) = Result;
+Result := Pointer(not UInt32(Result));
+{$ELSE}
+  {$MESSAGE FATAL 'Unsupported size of pointer.'}
+{$IFEND}
+end;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                            Interlocked logical and
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG8(A,Result and B,Result,Exchanged) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int8; B: Int8): Int8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int8(_iCMPXCHG8(UInt8(A),UInt8(Result and B),UInt8(Result),Exchanged)) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG16(A,Result and B,Result,Exchanged) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int16; B: Int16): Int16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int16(_iCMPXCHG16(UInt16(A),UInt16(Result and B),UInt16(Result),Exchanged)) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG32(A,Result and B,Result,Exchanged) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int32; B: Int32): Int32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int32(_iCMPXCHG32(UInt32(A),UInt32(Result and B),UInt32(Result),Exchanged)) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG64(A,Result and B,Result,Exchanged) = Result;
+Result := Result and B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int64; B: Int64): Int64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int64(_iCMPXCHG64(UInt64(A),UInt64(Result and B),UInt64(Result),Exchanged)) = Result;
+Result := Result and B;
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+{$IF SizeOf(Pointer) = 8}
+until Pointer(_iCMPXCHG64(UInt64(A),UInt64(Result) and UInt64(B),UInt64(Result),Exchanged)) = Result;
+Result := Pointer(UInt64(Result) and UInt64(B));
+{$ELSEIF SizeOf(Pointer) = 4}
+until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) and UInt32(B),UInt32(Result),Exchanged)) = Result;
+Result := Pointer(UInt32(Result) and UInt32(B));
+{$ELSE}
+  {$MESSAGE FATAL 'Unsupported size of pointer.'}
+{$IFEND}
+end;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                             Interlocked logical or
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedOr(var A: UInt8; B: UInt8): UInt8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG8(A,Result or B,Result,Exchanged) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int8; B: Int8): Int8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int8(_iCMPXCHG8(UInt8(A),UInt8(Result or B),UInt8(Result),Exchanged)) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: UInt16; B: UInt16): UInt16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG16(A,Result or B,Result,Exchanged) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int16; B: Int16): Int16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int16(_iCMPXCHG16(UInt16(A),UInt16(Result or B),UInt16(Result),Exchanged)) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: UInt32; B: UInt32): UInt32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG32(A,Result or B,Result,Exchanged) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int32; B: Int32): Int32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int32(_iCMPXCHG32(UInt32(A),UInt32(Result or B),UInt32(Result),Exchanged)) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedOr(var A: UInt64; B: UInt64): UInt64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG64(A,Result or B,Result,Exchanged) = Result;
+Result := Result or B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int64; B: Int64): Int64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int64(_iCMPXCHG64(UInt64(A),UInt64(Result or B),UInt64(Result),Exchanged)) = Result;
+Result := Result or B;
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Pointer; B: Pointer): Pointer;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+{$IF SizeOf(Pointer) = 8}
+until Pointer(_iCMPXCHG64(UInt64(A),UInt64(Result) or UInt64(B),UInt64(Result),Exchanged)) = Result;
+Result := Pointer(UInt64(Result) or UInt64(B));
+{$ELSEIF SizeOf(Pointer) = 4}
+until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) or UInt32(B),UInt32(Result),Exchanged)) = Result;
+Result := Pointer(UInt32(Result) or UInt32(B));
+{$ELSE}
+  {$MESSAGE FATAL 'Unsupported size of pointer.'}
+{$IFEND}
+end;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                             Interlocked logical xor
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedXor(var A: UInt8; B: UInt8): UInt8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG8(A,Result xor B,Result,Exchanged) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int8; B: Int8): Int8;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int8(_iCMPXCHG8(UInt8(A),UInt8(Result xor B),UInt8(Result),Exchanged)) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: UInt16; B: UInt16): UInt16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG16(A,Result xor B,Result,Exchanged) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int16; B: Int16): Int16;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int16(_iCMPXCHG16(UInt16(A),UInt16(Result xor B),UInt16(Result),Exchanged)) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: UInt32; B: UInt32): UInt32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG32(A,Result xor B,Result,Exchanged) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int32; B: Int32): Int32;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int32(_iCMPXCHG32(UInt32(A),UInt32(Result xor B),UInt32(Result),Exchanged)) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedXor(var A: UInt64; B: UInt64): UInt64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until _iCMPXCHG64(A,Result xor B,Result,Exchanged) = Result;
+Result := Result xor B;
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int64; B: Int64): Int64;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+until Int64(_iCMPXCHG64(UInt64(A),UInt64(Result xor B),UInt64(Result),Exchanged)) = Result;
+Result := Result xor B;
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Pointer; B: Pointer): Pointer;
+var
+  Exchanged:  ByteBool;
+begin
+repeat
+  Result := A;
+{$IF SizeOf(Pointer) = 8}
+until Pointer(_iCMPXCHG64(UInt64(A),UInt64(Result) xor UInt64(B),UInt64(Result),Exchanged)) = Result;
+Result := Pointer(UInt64(Result) xor UInt64(B));
+{$ELSEIF SizeOf(Pointer) = 4}
+until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) xor UInt32(B),UInt32(Result),Exchanged)) = Result;
+Result := Pointer(UInt32(Result) xor UInt32(B));
+{$ELSE}
+  {$MESSAGE FATAL 'Unsuppxorted size of pointer.'}
+{$IFEND}
+end;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -846,7 +1580,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange8(A,B,Result,Exchanged) = Result;
+until _iCMPXCHG8(A,B,Result,Exchanged) = Result;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -857,7 +1591,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange8(UInt8(A),UInt8(B),UInt8(Result),Exchanged) = UInt8(Result);
+until _iCMPXCHG8(UInt8(A),UInt8(B),UInt8(Result),Exchanged) = UInt8(Result);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -868,7 +1602,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange16(A,B,Result,Exchanged) = Result;
+until _iCMPXCHG16(A,B,Result,Exchanged) = Result;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -879,7 +1613,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange16(UInt16(A),UInt16(B),UInt16(Result),Exchanged) = UInt16(Result);
+until _iCMPXCHG16(UInt16(A),UInt16(B),UInt16(Result),Exchanged) = UInt16(Result);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -890,7 +1624,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange32(A,B,Result,Exchanged) = Result;
+until _iCMPXCHG32(A,B,Result,Exchanged) = Result;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -901,7 +1635,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange32(UInt32(A),UInt32(B),UInt32(Result),Exchanged) = UInt32(Result);
+until _iCMPXCHG32(UInt32(A),UInt32(B),UInt32(Result),Exchanged) = UInt32(Result);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -914,7 +1648,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange64(A,B,Result,Exchanged) = Result;
+until _iCMPXCHG64(A,B,Result,Exchanged) = Result;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -925,7 +1659,7 @@ var
 begin
 repeat
   Result := A;
-until _InterlockedCompareExchange64(UInt64(A),UInt64(B),UInt64(Result),Exchanged) = UInt64(Result);
+until _iCMPXCHG64(UInt64(A),UInt64(B),UInt64(Result),Exchanged) = UInt64(Result);
 end;
 
 {$ENDIF}
@@ -939,9 +1673,9 @@ begin
 repeat
   Result := A;
 {$IF SizeOf(Pointer) = 8}
-until _InterlockedCompareExchange64(UInt64(A),UInt64(B),UInt64(Result),Exchanged) = UInt64(Result);
+until _iCMPXCHG64(UInt64(A),UInt64(B),UInt64(Result),Exchanged) = UInt64(Result);
 {$ELSEIF SizeOf(Pointer) = 4}
-until _InterlockedCompareExchange32(UInt32(A),UInt32(B),UInt32(Result),Exchanged) = UInt32(Result);
+until _iCMPXCHG32(UInt32(A),UInt32(B),UInt32(Result),Exchanged) = UInt32(Result);
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -955,42 +1689,42 @@ end;
 
 Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8;
 begin
-Result := _InterlockedExchangeAdd8(A,B);
+Result := _iXADD8(A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int8; B: Int8): Int8;
 begin
-Result := Int8(_InterlockedExchangeAdd8(UInt8(A),UInt8(B)));
+Result := Int8(_iXADD8(UInt8(A),UInt8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: UInt16; B: UInt16): UInt16;
 begin
-Result := _InterlockedExchangeAdd16(A,B);
+Result := _iXADD16(A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int16; B: Int16): Int16;
 begin
-Result := Int16(_InterlockedExchangeAdd16(UInt16(A),UInt16(B)));
+Result := Int16(_iXADD16(UInt16(A),UInt16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: UInt32; B: UInt32): UInt32;
 begin
-Result := _InterlockedExchangeAdd32(A,B);
+Result := _iXADD32(A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int32; B: Int32): Int32;
 begin
-Result := Int32(_InterlockedExchangeAdd32(UInt32(A),UInt32(B)));
+Result := Int32(_iXADD32(UInt32(A),UInt32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -999,14 +1733,14 @@ end;
 
 Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64;
 begin
-Result := _InterlockedExchangeAdd64(A,B);
+Result := _iXADD64(A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int64; B: Int64): Int64;
 begin
-Result := Int64(_InterlockedExchangeAdd64(UInt64(A),UInt64(B)));
+Result := Int64(_iXADD64(UInt64(A),UInt64(B)));
 end;
 
 {$ENDIF}
@@ -1016,9 +1750,9 @@ end;
 Function InterlockedExchangeAdd(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(B)));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(B)));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1029,9 +1763,9 @@ end;
 Function InterlockedExchangeAdd(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(B)));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(B)));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1045,42 +1779,42 @@ end;
 
 Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8;
 begin
-Result := _InterlockedExchangeAdd8(A,UInt8(-Int8(B)));
+Result := _iXADD8(A,UInt8(-Int8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int8; B: Int8): Int8;
 begin
-Result := Int8(_InterlockedExchangeAdd8(UInt8(A),UInt8(-B)));
+Result := Int8(_iXADD8(UInt8(A),UInt8(-B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: UInt16; B: UInt16): UInt16;
 begin
-Result := _InterlockedExchangeAdd16(A,UInt16(-Int16(B)));
+Result := _iXADD16(A,UInt16(-Int16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int16; B: Int16): Int16;
 begin
-Result := Int16(_InterlockedExchangeAdd16(UInt16(A),UInt16(-B)));
+Result := Int16(_iXADD16(UInt16(A),UInt16(-B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: UInt32; B: UInt32): UInt32;
 begin
-Result := _InterlockedExchangeAdd32(A,UInt32(-Int32(B)));
+Result := _iXADD32(A,UInt32(-Int32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int32; B: Int32): Int32;
 begin
-Result := Int32(_InterlockedExchangeAdd32(UInt32(A),UInt32(-B)));
+Result := Int32(_iXADD32(UInt32(A),UInt32(-B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1089,14 +1823,14 @@ end;
 
 Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64;
 begin
-Result := _InterlockedExchangeAdd64(A,UInt64(-Int64(B)));
+Result := _iXADD64(A,UInt64(-Int64(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int64; B: Int64): Int64;
 begin
-Result := Int64(_InterlockedExchangeAdd64(UInt64(A),UInt64(-B)));
+Result := Int64(_iXADD64(UInt64(A),UInt64(-B)));
 end;
 
 {$ENDIF}
@@ -1106,9 +1840,9 @@ end;
 Function InterlockedExchangeSub(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(-Int64(B))));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(-Int64(B))));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(-Int32(B))));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(-Int32(B))));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1119,9 +1853,9 @@ end;
 Function InterlockedExchangeSub(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedExchangeAdd64(UInt64(A),UInt64(-Int64(B))));
+  Result := Pointer(_iXADD64(UInt64(A),UInt64(-Int64(B))));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedExchangeAdd32(UInt32(A),UInt32(-Int32(B))));
+  Result := Pointer(_iXADD32(UInt32(A),UInt32(-Int32(B))));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1137,7 +1871,7 @@ Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: 
 var
   ExchangedBB:  ByteBool;
 begin
-Result := _InterlockedCompareExchange8(Destination,Exchange,Comparand,ExchangedBB);
+Result := _iCMPXCHG8(Destination,Exchange,Comparand,ExchangedBB);
 Exchanged := ExchangedBB;
 end;
 
@@ -1147,7 +1881,7 @@ Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: I
 var
   ExchangedBB:  ByteBool;
 begin
-Result := Int8(_InterlockedCompareExchange8(UInt8(Destination),UInt8(Exchange),UInt8(Comparand),ExchangedBB));
+Result := Int8(_iCMPXCHG8(UInt8(Destination),UInt8(Exchange),UInt8(Comparand),ExchangedBB));
 Exchanged := ExchangedBB;
 end;
 
@@ -1157,7 +1891,7 @@ Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand:
 var
   ExchangedBB:  ByteBool;
 begin
-Result := _InterlockedCompareExchange16(Destination,Exchange,Comparand,ExchangedBB);
+Result := _iCMPXCHG16(Destination,Exchange,Comparand,ExchangedBB);
 Exchanged := ExchangedBB;
 end;
 
@@ -1167,7 +1901,7 @@ Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: 
 var
   ExchangedBB:  ByteBool;
 begin
-Result := Int16(_InterlockedCompareExchange16(UInt16(Destination),UInt16(Exchange),UInt16(Comparand),ExchangedBB));
+Result := Int16(_iCMPXCHG16(UInt16(Destination),UInt16(Exchange),UInt16(Comparand),ExchangedBB));
 Exchanged := ExchangedBB;
 end;
 
@@ -1177,7 +1911,7 @@ Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand:
 var
   ExchangedBB:  ByteBool;
 begin
-Result := _InterlockedCompareExchange32(Destination,Exchange,Comparand,ExchangedBB);
+Result := _iCMPXCHG32(Destination,Exchange,Comparand,ExchangedBB);
 Exchanged := ExchangedBB;
 end;
 
@@ -1187,7 +1921,7 @@ Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: 
 var
   ExchangedBB:  ByteBool;
 begin
-Result := Int32(_InterlockedCompareExchange32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),ExchangedBB));
+Result := Int32(_iCMPXCHG32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),ExchangedBB));
 Exchanged := ExchangedBB;
 end;
 
@@ -1199,7 +1933,7 @@ Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand:
 var
   ExchangedBB:  ByteBool;
 begin
-Result := _InterlockedCompareExchange64(Destination,Exchange,Comparand,ExchangedBB);
+Result := _iCMPXCHG64(Destination,Exchange,Comparand,ExchangedBB);
 Exchanged := ExchangedBB;
 end;
 
@@ -1209,7 +1943,7 @@ Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: 
 var
   ExchangedBB:  ByteBool;
 begin
-Result := Int64(_InterlockedCompareExchange64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),ExchangedBB));
+Result := Int64(_iCMPXCHG64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),ExchangedBB));
 Exchanged := ExchangedBB;
 end;
 
@@ -1222,9 +1956,9 @@ var
   ExchangedBB:  ByteBool;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedCompareExchange64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),ExchangedBB));
+  Result := Pointer(_iCMPXCHG64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),ExchangedBB));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedCompareExchange32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),ExchangedBB));
+  Result := Pointer(_iCMPXCHG32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),ExchangedBB));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1237,7 +1971,7 @@ Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: 
 var
   Exchanged:  ByteBool;
 begin
-Result := _InterlockedCompareExchange8(Destination,Exchange,Comparand,Exchanged);
+Result := _iCMPXCHG8(Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1246,7 +1980,7 @@ Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: I
 var
   Exchanged:  ByteBool;
 begin
-Result := Int8(_InterlockedCompareExchange8(UInt8(Destination),UInt8(Exchange),UInt8(Comparand),Exchanged));
+Result := Int8(_iCMPXCHG8(UInt8(Destination),UInt8(Exchange),UInt8(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1255,7 +1989,7 @@ Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand:
 var
   Exchanged:  ByteBool;
 begin
-Result := _InterlockedCompareExchange16(Destination,Exchange,Comparand,Exchanged);
+Result := _iCMPXCHG16(Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1264,7 +1998,7 @@ Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: 
 var
   Exchanged:  ByteBool;
 begin
-Result := Int16(_InterlockedCompareExchange16(UInt16(Destination),UInt16(Exchange),UInt16(Comparand),Exchanged));
+Result := Int16(_iCMPXCHG16(UInt16(Destination),UInt16(Exchange),UInt16(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1273,7 +2007,7 @@ Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand:
 var
   Exchanged:  ByteBool;
 begin
-Result := _InterlockedCompareExchange32(Destination,Exchange,Comparand,Exchanged);
+Result := _iCMPXCHG32(Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1282,7 +2016,7 @@ Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: 
 var
   Exchanged:  ByteBool;
 begin
-Result := Int32(_InterlockedCompareExchange32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),Exchanged));
+Result := Int32(_iCMPXCHG32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1293,7 +2027,7 @@ Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand:
 var
   Exchanged:  ByteBool;
 begin
-Result := _InterlockedCompareExchange64(Destination,Exchange,Comparand,Exchanged);
+Result := _iCMPXCHG64(Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1302,7 +2036,7 @@ Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: 
 var
   Exchanged:  ByteBool;
 begin
-Result := Int64(_InterlockedCompareExchange64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),Exchanged));
+Result := Int64(_iCMPXCHG64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),Exchanged));
 end;
 
 {$ENDIF}
@@ -1314,9 +2048,9 @@ var
   Exchanged:  ByteBool;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_InterlockedCompareExchange64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),Exchanged));
+  Result := Pointer(_iCMPXCHG64(UInt64(Destination),UInt64(Exchange),UInt64(Comparand),Exchanged));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_InterlockedCompareExchange32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),Exchanged));
+  Result := Pointer(_iCMPXCHG32(UInt32(Destination),UInt32(Exchange),UInt32(Comparand),Exchanged));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1334,7 +2068,7 @@ with TSimpleCPUID.Create do
 try
 {$IF Defined(AllowVal64) and not Defined(x64)}
   If not Info.ProcessorFeatures.CX8 then          
-    raise EIOUnsupportedInstruction.Create('Instruction CMPXCHG8B is not supported by current CPU.');
+    raise EILOUnsupportedInstruction.Create('Instruction CMPXCHG8B is not supported by current CPU.');
 {$IFEND}    
 finally
   Free;
