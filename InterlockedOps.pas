@@ -22,11 +22,9 @@ unit InterlockedOps;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}
+  {$ASMMODE Intel}
   {$INLINE ON}
   {$DEFINE CanInline}
-  {$IFNDEF PurePascal}
-    {$ASMMODE Intel}
-  {$ENDIF}
   {$DEFINE FPC_DisableWarns}
   {$MACRO ON}
 {$ELSE}
@@ -46,11 +44,17 @@ unit InterlockedOps;
 
 {$DEFINE EnableVal64onSys32}
 
+{$DEFINE EnableVal128}
+
 //------------------------------------------------------------------------------
 // do not touch following define checks
 
 {$IF Defined(CPU64bit) or Defined(EnableVal64onSys32)}
   {$DEFINE AllowVal64}
+{$IFEND}
+
+{$IF Defined(EnableVal128) and Defined(x64)}
+  {$DEFINE AllowVal128}
 {$IFEND}
 
 {$IFDEF PurePascal}
@@ -110,18 +114,18 @@ type
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedIncrement(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedIncrement(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: UInt8): UInt8; overload; register; assembler;
+Function InterlockedIncrement(var I: Int8): Int8; overload; register; assembler;
 
-Function InterlockedIncrement(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedIncrement(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: UInt16): UInt16; overload; register; assembler;
+Function InterlockedIncrement(var I: Int16): Int16; overload; register; assembler;
 
-Function InterlockedIncrement(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedIncrement(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: UInt32): UInt32; overload; register; assembler;
+Function InterlockedIncrement(var I: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedIncrement(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedIncrement(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: UInt64): UInt64; overload; register; assembler;
+Function InterlockedIncrement(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
 Function InterlockedIncrement(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
@@ -132,18 +136,18 @@ Function InterlockedIncrement(var I: Pointer): Pointer; overload;{$IFDEF CanInli
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedDecrement(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedDecrement(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: UInt8): UInt8; overload; register; assembler;
+Function InterlockedDecrement(var I: Int8): Int8; overload; register; assembler;
 
-Function InterlockedDecrement(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedDecrement(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: UInt16): UInt16; overload; register; assembler;
+Function InterlockedDecrement(var I: Int16): Int16; overload; register; assembler;
 
-Function InterlockedDecrement(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedDecrement(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: UInt32): UInt32; overload; register; assembler;
+Function InterlockedDecrement(var I: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedDecrement(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedDecrement(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: UInt64): UInt64; overload; register; assembler;
+Function InterlockedDecrement(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
 Function InterlockedDecrement(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
@@ -154,18 +158,18 @@ Function InterlockedDecrement(var I: Pointer): Pointer; overload;{$IFDEF CanInli
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedAdd(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
+Function InterlockedAdd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
-Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedAdd(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
+Function InterlockedAdd(var A: Int16; B: Int16): Int16; overload; register; assembler;
 
-Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedAdd(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
+Function InterlockedAdd(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedAdd(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
+Function InterlockedAdd(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
 Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
@@ -177,18 +181,18 @@ Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF C
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedSub(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedSub(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
+Function InterlockedSub(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
-Function InterlockedSub(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedSub(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
+Function InterlockedSub(var A: Int16; B: Int16): Int16; overload; register; assembler;
 
-Function InterlockedSub(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedSub(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
+Function InterlockedSub(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedSub(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
-Function InterlockedSub(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
+Function InterlockedSub(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
 Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
@@ -200,21 +204,21 @@ Function InterlockedSub(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF C
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedNeg(var I: UInt8): UInt8; overload;
-Function InterlockedNeg(var I: Int8): Int8; overload;
+Function InterlockedNeg(var I: UInt8): UInt8; overload; register; assembler;
+Function InterlockedNeg(var I: Int8): Int8; overload; register; assembler;
 
-Function InterlockedNeg(var I: UInt16): UInt16; overload;
-Function InterlockedNeg(var I: Int16): Int16; overload;
+Function InterlockedNeg(var I: UInt16): UInt16; overload; register; assembler;
+Function InterlockedNeg(var I: Int16): Int16; overload; register; assembler;
 
-Function InterlockedNeg(var I: UInt32): UInt32; overload;
-Function InterlockedNeg(var I: Int32): Int32; overload;
+Function InterlockedNeg(var I: UInt32): UInt32; overload; register; assembler;
+Function InterlockedNeg(var I: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedNeg(var I: UInt64): UInt64; overload;
-Function InterlockedNeg(var I: Int64): Int64; overload;
+Function InterlockedNeg(var I: UInt64): UInt64; overload; register; assembler;
+Function InterlockedNeg(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
-Function InterlockedNeg(var I: Pointer): Pointer; overload;
+Function InterlockedNeg(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -222,21 +226,21 @@ Function InterlockedNeg(var I: Pointer): Pointer; overload;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedNot(var I: UInt8): UInt8; overload;
-Function InterlockedNot(var I: Int8): Int8; overload;
+Function InterlockedNot(var I: UInt8): UInt8; overload; register; assembler;
+Function InterlockedNot(var I: Int8): Int8; overload; register; assembler;
 
-Function InterlockedNot(var I: UInt16): UInt16; overload;
-Function InterlockedNot(var I: Int16): Int16; overload;
+Function InterlockedNot(var I: UInt16): UInt16; overload; register; assembler;
+Function InterlockedNot(var I: Int16): Int16; overload; register; assembler;
 
-Function InterlockedNot(var I: UInt32): UInt32; overload;
-Function InterlockedNot(var I: Int32): Int32; overload;
+Function InterlockedNot(var I: UInt32): UInt32; overload; register; assembler;
+Function InterlockedNot(var I: Int32): Int32; overload; register; assembler;
 
 {$IFDEF AllowVal64}
-Function InterlockedNot(var I: UInt64): UInt64; overload;
-Function InterlockedNot(var I: Int64): Int64; overload;
+Function InterlockedNot(var I: UInt64): UInt64; overload; register; assembler;
+Function InterlockedNot(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
-Function InterlockedNot(var I: Pointer): Pointer; overload;
+Function InterlockedNot(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -524,6 +528,22 @@ Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                              Interlocked bit test
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                          Interlocked bit test and set
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean; overload;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                                 Interlocked load
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -758,6 +778,7 @@ end;
 {$ENDIF}
 {$ENDIF}
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked increment                              
@@ -767,59 +788,138 @@ end;
 {$IFDEF OverflowChecks}{$Q-}{$ENDIF}
 
 Function InterlockedIncrement(var I: UInt8): UInt8;
-begin
-Result := UInt8(_iXADD8(I,1) + 1);
+asm
+          MOV   DL, 1
+    LOCK  XADD  byte ptr [I], DL
+          MOV   AL, DL
+          INC   AL
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int8): Int8;
-begin
-Result := Int8(Int8(_iXADD8(UInt8(I),1)) + 1);
+asm
+          MOV   DL, 1
+    LOCK  XADD  byte ptr [I], DL
+          MOV   AL, DL
+          INC   AL
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt16): UInt16;
-begin
-Result := UInt16(_iXADD16(I,1) + 1);
+asm
+          MOV   DX, 1
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          INC   AX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int16): Int16;
-begin
-Result := Int16(Int16(_iXADD16(UInt16(I),1)) + 1);
+asm
+          MOV   DX, 1
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          INC   AX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt32): UInt32;
-begin
-Result := UInt32(_iXADD32(I,1) + 1);
+asm
+          MOV   EDX, 1
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          INC   EAX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int32): Int32;
-begin
-Result := Int32(Int32(_iXADD32(UInt32(I),1)) + 1);
+asm
+          MOV   EDX, 1
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          INC   EAX
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 {$IFDEF AllowVal64}
 
 Function InterlockedIncrement(var I: UInt64): UInt64;
-begin
-Result := UInt64(_iXADD64(I,1) + 1);
+asm
+{$IFDEF x64}
+          MOV   RDX, 1
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          INC   RAX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          ADD   EBX, 1
+          ADC   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int64): Int64;
-begin
-Result := Int64(Int64(_iXADD64(UInt64(I),1)) + 1);
+asm
+{$IFDEF x64}
+          MOV   RDX, 1
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          INC   RAX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          ADD   EBX, 1
+          ADC   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -829,13 +929,14 @@ end;
 Function InterlockedIncrement(var I: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(I),1) + 1);
+  Result := Pointer(InterlockedIncrement(UInt64(I)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(I),1) + 1);
+  Result := Pointer(InterlockedIncrement(UInt32(I)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -844,43 +945,60 @@ end;
 ===============================================================================}
 
 Function InterlockedDecrement(var I: UInt8): UInt8;
-begin
-Result := UInt8(_iXADD8(I,UInt8(-1)) - 1);
+asm
+          MOV   DL, byte(-1)
+    LOCK  XADD  byte ptr [I], DL
+          MOV   AL, DL
+          DEC   AL
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int8): Int8;
-begin
-Result := Int8(Int8(_iXADD8(UInt8(I),UInt8(-1))) - 1);
+asm
+          MOV   DL, byte(-1)
+    LOCK  XADD  byte ptr [I], DL
+          MOV   AL, DL
+          DEC   AL
 end;
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt16): UInt16;
-begin
-Result := UInt16(_iXADD16(I,UInt16(-1)) - 1);
+asm
+          MOV   DX, word(-1)
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          DEC   AX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int16): Int16;
-begin
-Result := Int16(Int16(_iXADD16(UInt16(I),UInt16(-1))) - 1);
+asm
+          MOV   DX, word(-1)
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          DEC   AX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt32): UInt32;
-begin
-Result := UInt32(_iXADD32(I,UInt32(-1)) - 1);
+asm
+          MOV   EDX, dword(-1)
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          DEC   EAX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int32): Int32;
-begin
-Result := Int32(Int32(_iXADD32(UInt32(I),UInt32(-1))) - 1);
+asm
+          MOV   EDX, dword(-1)
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          DEC   EAX
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -888,15 +1006,77 @@ end;
 {$IFDEF AllowVal64}
 
 Function InterlockedDecrement(var I: UInt64): UInt64;
-begin
-Result := UInt64(_iXADD64(I,UInt64(-1)) - 1);
+asm
+{$IFDEF x64}
+          MOV   RDX, qword(-1)
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          DEC   RAX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, 1
+          SBB   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int64): Int64;
-begin
-Result := Int64(Int64(_iXADD64(UInt64(I),UInt64(-1))) - 1);
+asm
+{$IFDEF x64}
+          MOV   RDX, qword(-1)
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          DEC   RAX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, 1
+          SBB   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -906,13 +1086,14 @@ end;
 Function InterlockedDecrement(var I: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(I),UInt64(-1)) - 1);
+  Result := Pointer(InterlockedDecrement(UInt64(I)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(I),UInt32(-1)) - 1);
+  Result := Pointer(InterlockedDecrement(UInt32(I)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -921,43 +1102,97 @@ end;
 ===============================================================================}
 
 Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8;
-begin
-Result := UInt8(_iXADD8(A,B) + B);
+asm
+{$IFDEF x64}
+          MOV   AL, B
+    LOCK  XADD  byte ptr [A], AL
+          ADD   AL, B
+{$ELSE}
+          MOV   CL, DL
+    LOCK  XADD  byte ptr [EAX], DL
+          MOV   AL, DL
+          ADD   AL, CL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int8; B: Int8): Int8;
-begin
-Result := Int8(Int8(_iXADD8(UInt8(A),UInt8(B))) + B);
+asm
+{$IFDEF x64}
+          MOV   AL, B
+    LOCK  XADD  byte ptr [A], AL
+          ADD   AL, B
+{$ELSE}
+          MOV   CL, DL
+    LOCK  XADD  byte ptr [EAX], DL
+          MOV   AL, DL
+          ADD   AL, CL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16;
-begin
-Result := UInt16(_iXADD16(A,B) + B);
+asm
+{$IFDEF x64}
+          MOV   AX, B
+    LOCK  XADD  word ptr [A], AX
+          ADD   AX, B
+{$ELSE}
+          MOV   CX, DX
+    LOCK  XADD  word ptr [EAX], DX
+          MOV   AX, DX
+          ADD   AX, CX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int16; B: Int16): Int16;
-begin
-Result := Int16(Int16(_iXADD16(UInt16(A),UInt16(B))) + B);
+asm
+{$IFDEF x64}
+          MOV   AX, B
+    LOCK  XADD  word ptr [A], AX
+          ADD   AX, B
+{$ELSE}
+          MOV   CX, DX
+    LOCK  XADD  word ptr [EAX], DX
+          MOV   AX, DX
+          ADD   AX, CX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32;
-begin
-Result := UInt32(_iXADD32(A,B) + B);
+asm
+{$IFDEF x64}
+          MOV   EAX, B
+    LOCK  XADD  dword ptr [A], EAX
+          ADD   EAX, B
+{$ELSE}
+          MOV   ECX, EDX
+    LOCK  XADD  dword ptr [EAX], EDX
+          MOV   EAX, EDX
+          ADD   EAX, ECX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int32; B: Int32): Int32;
-begin
-Result := Int32(Int32(_iXADD32(UInt32(A),UInt32(B))) + B);
+asm
+{$IFDEF x64}
+          MOV   EAX, B
+    LOCK  XADD  dword ptr [A], EAX
+          ADD   EAX, B
+{$ELSE}
+          MOV   ECX, EDX
+    LOCK  XADD  dword ptr [EAX], EDX
+          MOV   EAX, EDX
+          ADD   EAX, ECX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -965,15 +1200,75 @@ end;
 {$IFDEF AllowVal64}
 
 Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64;
-begin
-Result := UInt64(_iXADD64(A,B) + B);
+asm
+{$IFDEF x64}
+          MOV   RAX, B
+    LOCK  XADD  qword ptr [A], RAX
+          ADD   RAX, B
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EBX, dword ptr [B]
+          MOV   ECX, dword ptr [B + 4]
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          ADD   EBX, EAX
+          ADC   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int64; B: Int64): Int64;
-begin
-Result := Int64(Int64(_iXADD64(UInt64(A),UInt64(B))) + B);
+asm
+{$IFDEF x64}
+          MOV   RAX, B
+    LOCK  XADD  qword ptr [A], RAX
+          ADD   RAX, B
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EBX, dword ptr [B]
+          MOV   ECX, dword ptr [B + 4]
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          ADD   EBX, EAX
+          ADC   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -983,9 +1278,9 @@ end;
 Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)) + UInt64(B));
+  Result := Pointer(InterlockedAdd(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)) + UInt64(B));
+  Result := Pointer(InterlockedAdd(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -996,13 +1291,14 @@ end;
 Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(A),UInt64(B)) + UInt64(B));
+  Result := Pointer(InterlockedAdd(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(A),UInt32(B)) + UInt64(B));
+  Result := Pointer(InterlockedAdd(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1011,43 +1307,109 @@ end;
 ===============================================================================}
 
 Function InterlockedSub(var A: UInt8; B: UInt8): UInt8;
-begin
-Result := UInt8(_iXADD8(A,UInt8(-Int8(B))) - B);
+asm
+{$IFDEF x64}
+          MOV   AL, B
+          NEG   AL
+    LOCK  XADD  byte ptr [A], AL
+          SUB   AL, B
+{$ELSE}
+          MOV   CL, DL
+          NEG   CL
+    LOCK  XADD  byte ptr [EAX], CL
+          MOV   AL, CL
+          SUB   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int8; B: Int8): Int8;
-begin
-Result := Int8(Int8(_iXADD8(UInt8(A),UInt8(-B))) - B);
+asm
+{$IFDEF x64}
+          MOV   AL, B
+          NEG   AL
+    LOCK  XADD  byte ptr [A], AL
+          SUB   AL, B
+{$ELSE}
+          MOV   CL, DL
+          NEG   CL
+    LOCK  XADD  byte ptr [EAX], CL
+          MOV   AL, CL
+          SUB   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt16; B: UInt16): UInt16;
-begin
-Result := UInt16(_iXADD16(A,UInt16(-Int16(B))) - B);
+asm
+{$IFDEF x64}
+          MOV   AX, B
+          NEG   AX
+    LOCK  XADD  word ptr [A], AX
+          SUB   AX, B
+{$ELSE}
+          MOV   CX, DX
+          NEG   CX
+    LOCK  XADD  word ptr [EAX], CX
+          MOV   AX, CX
+          SUB   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int16; B: Int16): Int16;
-begin
-Result := Int16(Int16(_iXADD16(UInt16(A),UInt16(-B))) - B);
+asm
+{$IFDEF x64}
+          MOV   AX, B
+          NEG   AX
+    LOCK  XADD  word ptr [A], AX
+          SUB   AX, B
+{$ELSE}
+          MOV   CX, DX
+          NEG   CX
+    LOCK  XADD  word ptr [EAX], CX
+          MOV   AX, CX
+          SUB   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt32; B: UInt32): UInt32;
-begin
-Result := UInt32(_iXADD32(A,UInt32(-Int32(B))) - B);
+asm
+{$IFDEF x64}
+          MOV   EAX, B
+          NEG   EAX
+    LOCK  XADD  dword ptr [A], EAX
+          SUB   EAX, B
+{$ELSE}
+          MOV   ECX, EDX
+          NEG   ECX
+    LOCK  XADD  dword ptr [EAX], ECX
+          MOV   EAX, ECX
+          SUB   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int32; B: Int32): Int32;
-begin
-Result := Int32(Int32(_iXADD32(UInt32(A),UInt32(-B))) - B);
+asm
+{$IFDEF x64}
+          MOV   EAX, B
+          NEG   EAX
+    LOCK  XADD  dword ptr [A], EAX
+          SUB   EAX, B
+{$ELSE}
+          MOV   ECX, EDX
+          NEG   ECX
+    LOCK  XADD  dword ptr [EAX], ECX
+          MOV   EAX, ECX
+          SUB   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1055,15 +1417,77 @@ end;
 {$IFDEF AllowVal64}
 
 Function InterlockedSub(var A: UInt64; B: UInt64): UInt64;
-begin
-Result := UInt64(_iXADD64(A,UInt64(-Int64(B))) - B);
+asm
+{$IFDEF x64}
+          MOV   RAX, B
+          NEG   RAX
+    LOCK  XADD  qword ptr [A], RAX
+          SUB   RAX, B
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, dword ptr [B]
+          SBB   ECX, dword ptr [B + 4]
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int64; B: Int64): Int64;
-begin
-Result := Int64(Int64(_iXADD64(UInt64(A),UInt64(-B))) - B);
+asm
+{$IFDEF x64}
+          MOV   RAX, B
+          NEG   RAX
+    LOCK  XADD  qword ptr [A], RAX
+          SUB   RAX, B
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, dword ptr [B]
+          SBB   ECX, dword ptr [B + 4]
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -1073,9 +1497,9 @@ end;
 Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(A),UInt64(-B)) - UInt64(B));
+  Result := Pointer(InterlockedSub(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(A),UInt32(-B)) - UInt32(B));
+  Result := Pointer(InterlockedSub(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
@@ -1086,13 +1510,14 @@ end;
 Function InterlockedSub(var A: Pointer; B: Pointer): Pointer;
 begin
 {$IF SizeOf(Pointer) = 8}
-  Result := Pointer(_iXADD64(UInt64(A),UInt64(-Int64(B))) - UInt64(B));
+  Result := Pointer(InterlockedSub(UInt64(A),UInt64(B)));
 {$ELSEIF SizeOf(Pointer) = 4}
-  Result := Pointer(_iXADD32(UInt32(A),UInt32(-Int32(B))) - UInt32(B));
+  Result := Pointer(InterlockedSub(UInt32(A),UInt32(B)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1101,73 +1526,211 @@ end;
 ===============================================================================}
 
 Function InterlockedNeg(var I: UInt8): UInt8;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG8(I,UInt8(-Int8(Result)),Result,Exchanged) = Result;
-Result := UInt8(-Int8(Result));
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NEG   DL
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NEG   DL
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int8): Int8;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int8(_iCMPXCHG8(UInt8(I),UInt8(-Result),UInt8(Result),Exchanged)) = Result;
-Result := -Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NEG   DL
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NEG   DL
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: UInt16): UInt16;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG16(I,UInt16(-Int16(Result)),Result,Exchanged) = Result;
-Result := UInt16(-Int16(Result));
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int16): Int16;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int16(_iCMPXCHG16(UInt16(I),UInt16(-Result),UInt16(Result),Exchanged)) = Result;
-Result := -Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: UInt32): UInt32;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG32(I,UInt32(-Int32(Result)),Result,Exchanged) = Result;
-Result := UInt32(-Int32(Result));
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int32): Int32;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int32(_iCMPXCHG32(UInt32(I),UInt32(-Result),UInt32(Result),Exchanged)) = Result;
-Result := -Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1175,25 +1738,93 @@ end;
 {$IFDEF AllowVal64}
 
 Function InterlockedNeg(var I: UInt64): UInt64;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG64(I,UInt64(-Int64(Result)),Result,Exchanged) = Result;
-Result := UInt64(-Int64(Result));
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NEG   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          XOR   EBX, EBX
+          XOR   ECX, ECX
+
+          SUB   EBX, EAX
+          SBB   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX          
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int64): Int64;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int64(_iCMPXCHG64(UInt64(I),UInt64(-Result),UInt64(Result),Exchanged)) = Result;
-Result := -Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NEG   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          XOR   EBX, EBX
+          XOR   ECX, ECX
+
+          SUB   EBX, EAX
+          SBB   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX          
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -1201,23 +1832,18 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Pointer): Pointer;
-var
-  Exchanged:  ByteBool;
 begin
-repeat
-  Result := I;
 {$IF SizeOf(Pointer) = 8}
-until Pointer(_iCMPXCHG64(UInt64(I),UInt64(-Int64(Result)),UInt64(Result),Exchanged)) = Result;
-Result := Pointer(-Int64(Result));
+  Result := Pointer(InterlockedNeg(UInt64(I)));
 {$ELSEIF SizeOf(Pointer) = 4}
-until Pointer(_iCMPXCHG32(UInt32(I),UInt32(-Int32(Result)),UInt32(Result),Exchanged)) = Result;
-Result := Pointer(-Int32(Result));
+  Result := Pointer(InterlockedNeg(UInt32(I)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
 
 {$IFDEF OverflowChecks}{$Q+}{$ENDIF}
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1226,73 +1852,211 @@ end;
 ===============================================================================}
 
 Function InterlockedNot(var I: UInt8): UInt8;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG8(I,not Result,Result,Exchanged) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int8): Int8;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int8(_iCMPXCHG8(UInt8(I),UInt8(not Result),UInt8(Result),Exchanged)) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: UInt16): UInt16;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG16(I,not Result,Result,Exchanged) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int16): Int16;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int16(_iCMPXCHG16(UInt16(I),UInt16(not Result),UInt16(Result),Exchanged)) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: UInt32): UInt32;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG32(I,not Result,Result,Exchanged) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int32): Int32;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int32(_iCMPXCHG32(UInt32(I),UInt32(not Result),UInt32(Result),Exchanged)) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ELSE}
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1300,25 +2064,93 @@ end;
 {$IFDEF AllowVal64}
 
 Function InterlockedNot(var I: UInt64): UInt64;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until _iCMPXCHG64(I,not Result,Result,Exchanged) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NOT   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          NOT   EBX
+          NOT   ECX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX          
+{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int64): Int64;
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := I;
-until Int64(_iCMPXCHG64(UInt64(I),UInt64(not Result),UInt64(Result),Exchanged)) = Result;
-Result := not Result;
+asm
+{$IFDEF x64}
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NOT   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+{$ELSE}
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          NOT   EBX
+          NOT   ECX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX          
+{$ENDIF}
 end;
 
 {$ENDIF}
@@ -1326,21 +2158,16 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Pointer): Pointer;
-var
-  Exchanged:  ByteBool;
 begin
-repeat
-  Result := I;
 {$IF SizeOf(Pointer) = 8}
-until Pointer(_iCMPXCHG64(UInt64(I),not UInt64(Result),UInt64(Result),Exchanged)) = Result;
-Result := Pointer(not UInt64(Result));
+  Result := Pointer(InterlockedNot(UInt64(i)));
 {$ELSEIF SizeOf(Pointer) = 4}
-until Pointer(_iCMPXCHG32(UInt32(I),not UInt32(Result),UInt32(Result),Exchanged)) = Result;
-Result := Pointer(not UInt32(Result));
+  Result := Pointer(InterlockedNot(UInt32(i)));
 {$ELSE}
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1465,6 +2292,7 @@ Result := Pointer(UInt32(Result) and UInt32(B));
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked logical or
@@ -1587,6 +2415,7 @@ Result := Pointer(UInt32(Result) or UInt32(B));
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1711,6 +2540,7 @@ Result := Pointer(UInt32(Result) xor UInt32(B));
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked exchange
@@ -1824,6 +2654,7 @@ until _iCMPXCHG32(UInt32(A),UInt32(B),UInt32(Result),Exchanged) = UInt32(Result)
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                           Interlocked exchange and add
@@ -1916,6 +2747,7 @@ begin
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                        Interlocked exchange and subtract
@@ -2005,6 +2837,7 @@ begin
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2121,6 +2954,7 @@ end;
 
 {$IFDEF OverflowChecks}{$Q+}{$ENDIF}
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical not
@@ -2233,6 +3067,7 @@ until Pointer(_iCMPXCHG32(UInt32(I),not UInt32(Result),UInt32(Result),Exchanged)
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2347,6 +3182,7 @@ until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) and UInt32(B),UInt32(Result),
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical or
@@ -2460,6 +3296,7 @@ until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) or UInt32(B),UInt32(Result),E
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical xor
@@ -2572,6 +3409,38 @@ until Pointer(_iCMPXCHG32(UInt32(A),UInt32(Result) xor UInt32(B),UInt32(Result),
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                              Interlocked bit test
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean;
+begin
+Result := ((_iXADD8(I,0) shr (Bit and 7)) and 1) <> 0;
+end;
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                          Interlocked bit test and set
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean;
+var
+  Mask,Temp:  UInt8;
+  Exchanged:  ByteBool;
+begin
+Mask := UInt8(1 shl (Bit and 7));
+repeat
+  Temp := I;
+until _iCMPXCHG8(I,Temp or Mask,Temp,Exchanged) = Temp;
+Result := (Temp and Mask) <> 0;
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2768,6 +3637,7 @@ begin
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                                 Interlocked load
@@ -2844,6 +3714,7 @@ begin
   {$MESSAGE FATAL 'Unsupported size of pointer.'}
 {$IFEND}
 end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2958,6 +3829,7 @@ until Pointer(_iCMPXCHG32(UInt32(I),UInt32(NewValue),UInt32(Result),Exchanged)) 
 {$IFEND}
 end;
 
+
 {===============================================================================
 --------------------------------------------------------------------------------
                               Unit initialization
@@ -2984,3 +3856,4 @@ initialization
   Initialize;
 
 end.
+
