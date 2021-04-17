@@ -68,36 +68,6 @@ uses
   AuxTypes;
 
 {
-functions
-    Inc
-    Dec
-    Add
-    Sub
-    Neg
-    Not
-    And
-    Or
-    Xor
-
-    Exchange
-    ExchangeAdd
-    ExchangeSub
-    ExchangeNeg
-    ExchangeNot
-    ExchangeAnd
-    ExchangeOr
-    ExchangeXor
-  
-    CompareExchange
-
-  BitTest
-  BitTestAndSet
-  BitTestAndReset
-  BitTestAndComplement
-
-    Load
-    Store
-
 CmpExch in 128bit (64bit system only)
 }
 const
@@ -573,6 +543,50 @@ Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overlo
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                         Interlocked bit test and reset
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+
+Function InterlockedBitTestAndReset(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+
+Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+
+{$IFDEF AllowVal64}
+Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+{$ENDIF}
+
+Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                      Interlocked bit test and complement
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+
+Function InterlockedBitTestAndComplement(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+
+Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+
+{$IFDEF AllowVal64}
+Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+{$ENDIF}
+
+Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                                 Interlocked load
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -619,193 +633,6 @@ implementation
 
 uses
   SimpleCPUID;
-
-Function _iCMPXCHG8(var Dest: UInt8; Exch,Comp: UInt8; out Exchanged: ByteBool): UInt8; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-          MOV     AL, R8B
-    LOCK  CMPXCHG byte ptr [RCX], DL
-  {$ELSE}
-          MOV     AL, DL
-    LOCK  CMPXCHG byte ptr [RDI], SIL
-  {$ENDIF}
-          // pointer to Exchanged is in a register (R9 on Windows, RCX elsewhere)
-          SETZ    byte ptr [Exchanged]
-{$ELSE}
-          XCHG    EAX, ECX
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          // pointer to Exchanged is on the stack
-          MOV     EDX, dword ptr [Exchanged]
-          SETZ    byte ptr [EDX]
-{$ENDIF}
-end;
-
-//------------------------------------------------------------------------------
-
-Function _iCMPXCHG16(var Dest: UInt16; Exch,Comp: UInt16; out Exchanged: ByteBool): UInt16; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-          MOV     AX, R8W
-    LOCK  CMPXCHG word ptr [RCX], DX
-  {$ELSE}
-          MOV     AX, DX
-    LOCK  CMPXCHG word ptr [RDI], SI
-  {$ENDIF}
-          SETZ    byte ptr [Exchanged]
-{$ELSE}
-          XCHG    EAX, ECX 
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          MOV     EDX, dword ptr [Exchanged]
-          SETZ    byte ptr [EDX]
-{$ENDIF}
-end;
-
-//------------------------------------------------------------------------------
-
-Function _iCMPXCHG32(var Dest: UInt32; Exch,Comp: UInt32; out Exchanged: ByteBool): UInt32; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-          MOV     EAX, R8D
-    LOCK  CMPXCHG dword ptr [RCX], EDX
-  {$ELSE}
-          MOV     EAX, EDX
-    LOCK  CMPXCHG dword ptr [RDI], ESI
-  {$ENDIF}
-          SETZ    byte ptr [Exchanged]
-{$ELSE}
-          XCHG    EAX, ECX 
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          MOV     EDX, dword ptr [Exchanged]
-          SETZ    byte ptr [EDX]
-{$ENDIF}
-end;
-
-//------------------------------------------------------------------------------
-
-{$IFDEF AllowVal64}
-Function _iCMPXCHG64(var Dest: UInt64; Exch: UInt64; Comp: UInt64; out Exchanged: ByteBool): UInt64; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-          MOV     RAX, R8
-    LOCK  CMPXCHG qword ptr [RCX], RDX
-  {$ELSE}
-          MOV     RAX, RDX
-    LOCK  CMPXCHG qword ptr [RDI], RSI
-  {$ENDIF}
-          SETZ    byte ptr [Exchanged]  
-{$ELSE}
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  EDX   // save pointer to Exchanged
-
-          // EAX will be rewritten, preserve pointer to Dest in EDI
-          MOV   EDI, EAX
-
-          // load Comp into registers
-          MOV   EAX, dword ptr [Comp]
-          MOV   EDX, dword ptr [Comp + 4]
-
-          // load Exch into registers
-          MOV   EBX, dword ptr [Exch]
-          MOV   ECX, dword ptr [Exch + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          POP   ECX   // load pointer to Exchanged
-          SETZ  byte ptr [ECX]
-
-          POP   EDI
-          POP   EBX
-{$ENDIF}
-end;
-{$ENDIF}
-
-//==============================================================================
-
-Function _iXADD8(var A: UInt8; B: UInt8): UInt8; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-    LOCK  XADD  byte ptr [RCX], DL
-          MOV   AL, DL
-  {$ELSE}
-    LOCK  XADD  byte ptr [RDI], SIL
-          MOV   AL, SIL
-  {$ENDIF}
-{$ELSE}
-    LOCK  XADD  byte ptr [EAX], DL
-          MOV   AL, DL
-{$ENDIF}        
-end;
-
-//------------------------------------------------------------------------------
-
-Function _iXADD16(var A: UInt16; B: UInt16): UInt16; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-    LOCK  XADD  word ptr [RCX], DX
-          MOV   AX, DX
-  {$ELSE}
-    LOCK  XADD  word ptr [RDI], SI
-          MOV   AX, SI
-  {$ENDIF}
-{$ELSE}
-    LOCK  XADD  word ptr [EAX], DX
-          MOV   AX, DX
-{$ENDIF}        
-end;
-
-//------------------------------------------------------------------------------
-
-Function _iXADD32(var A: UInt32; B: UInt32): UInt32; register; assembler;
-asm
-{$IFDEF x64}
-  {$IFDEF Windows}
-    LOCK  XADD  dword ptr [RCX], EDX
-          MOV   EAX, EDX
-  {$ELSE}
-    LOCK  XADD  dword ptr [RDI], ESI
-          MOV   EAX, ESI
-  {$ENDIF}
-{$ELSE}
-    LOCK  XADD  dword ptr [EAX], EDX
-          MOV   EAX, EDX
-{$ENDIF}
-end;
-
-//------------------------------------------------------------------------------
-
-{$IFDEF AllowVal64}
-Function _iXADD64(var A: UInt64; B: UInt64): UInt64; {$IFDEF x64} register; assembler;
-asm
-  {$IFDEF Windows}
-    LOCK  XADD  qword ptr [RCX], RDX
-          MOV   RAX, RDX
-  {$ELSE}
-    LOCK  XADD  qword ptr [RDI], RSI
-          MOV   RAX, RSI
-  {$ENDIF}
-end;
-{$ELSE}
-{$IFDEF OverflowChecks}{$Q-}{$ENDIF}
-var
-  Exchanged:  ByteBool;
-begin
-repeat
-  Result := A;
-until _iCMPXCHG64(A,B + Result,Result,Exchanged) = Result;
-end;
-{$IFDEF OverflowChecks}{$Q+}{$ENDIF}
-{$ENDIF}
-{$ENDIF}
 
 
 {===============================================================================
@@ -6859,6 +6686,8 @@ end;
 
 {$ENDIF}
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean;
 asm
 {$IFDEF x64}
@@ -6875,6 +6704,379 @@ asm
 
 {$ENDIF}
 end;
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                         Interlocked bit test and reset
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean;
+asm
+          AND   Bit, 7
+    LOCK  BTR   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean;
+asm
+          AND   Bit, 7
+    LOCK  BTR   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: UInt16; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTR   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTR   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTR   dword ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTR   dword ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTR   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTR   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTR   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTR   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTR   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTR   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTR   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          AND   Bit, 31
+    LOCK  BTR   dword ptr [I], Bit
+          SETC  AL
+
+{$ENDIF}
+end;
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                      Interlocked bit test and complement
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean;
+asm
+          AND   Bit, 7
+    LOCK  BTC   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean;
+asm
+          AND   Bit, 7
+    LOCK  BTC   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: UInt16; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTC   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTC   word ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTC   dword ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTC   dword ptr [I], Bit
+          SETC  AL
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF AllowVal64}
+
+Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTC   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTC   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTC   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTC   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTC   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTC   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTC   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          AND   Bit, 31
+    LOCK  BTC   dword ptr [I], Bit
+          SETC  AL
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
