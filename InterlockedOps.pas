@@ -1,12 +1,18 @@
 unit InterlockedOps;
+{
+  InterlockedOps_PurePascal
 
-{$IF defined(CPU64) or defined(CPU64BITS)}
-  {$DEFINE CPU64bit}
-{$ELSEIF defined(CPU16)}
-  {$MESSAGE FATAL '16bit CPU not supported.'}
-{$ELSE}
-  {$DEFINE CPU32bit}
-{$IFEND}
+  If you want to compile this unit without ASM, don't want to or cannot define
+  PurePascal for the entire project and at the same time you don't want to or
+  cannot make changes to this unit, define this symbol for the entire project
+  and this unit will be compiled in PurePascal mode.
+
+    NOTE - this unit cannot be compiled without asm, but there it is for the
+           sake of completeness.
+}
+{$IFDEF InterlockedOps_PurePascal}
+  {$DEFINE PurePascal}
+{$ENDIF}
 
 {$IF defined(CPUX86_64) or defined(CPUX64)}
   {$DEFINE x64}
@@ -23,22 +29,10 @@ unit InterlockedOps;
 {$IFDEF FPC}
   {$MODE ObjFPC}
   {$ASMMODE Intel}
-  {$INLINE ON}
-  {$DEFINE CanInline}
   {$DEFINE FPC_DisableWarns}
   {$MACRO ON}
-{$ELSE}
-  {$IF CompilerVersion >= 17 then}  // Delphi 2005+
-    {$DEFINE CanInline}
-  {$ELSE}
-    {$UNDEF CanInline}
-  {$IFEND}
 {$ENDIF}
 {$H+}
-
-{$IFOPT Q+}
-  {$DEFINE OverflowChecks}
-{$ENDIF}
 
 //------------------------------------------------------------------------------
 
@@ -49,12 +43,12 @@ unit InterlockedOps;
 //------------------------------------------------------------------------------
 // do not touch following define checks
 
-{$IF Defined(CPU64bit) or Defined(EnableVal64onSys32)}
-  {$DEFINE AllowVal64}
+{$IF Defined(EnableVal64onSys32) or Defined(x64)}
+  {$DEFINE IncludeVal64}
 {$IFEND}
 
 {$IF Defined(EnableVal128) and Defined(x64)}
-  {$DEFINE AllowVal128}
+  {$DEFINE IncludeVal128}
 {$IFEND}
 
 {$IFDEF PurePascal}
@@ -71,8 +65,8 @@ uses
 CmpExch in 128bit (64bit system only)
 }
 const
-  ILO_64BIT_VARS  = {$IFDEF AllowVal64}True{$ELSE}False{$ENDIF};
-  ILO_128BIT_VARS = {$IFDEF AllowVal128}True{$ELSE}False{$ENDIF};
+  ILO_64BIT_VARS  = {$IFDEF IncludeVal64}True{$ELSE}False{$ENDIF};
+  ILO_128BIT_VARS = {$IFDEF IncludeVal128}True{$ELSE}False{$ENDIF};
 
 type
   EILOException = class(Exception);
@@ -94,7 +88,7 @@ Function InterlockedIncrement(var I: Int16): Int16; overload; register; assemble
 Function InterlockedIncrement(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedIncrement(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedIncrement(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedIncrement(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -116,7 +110,7 @@ Function InterlockedDecrement(var I: Int16): Int16; overload; register; assemble
 Function InterlockedDecrement(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedDecrement(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedDecrement(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedDecrement(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -138,7 +132,7 @@ Function InterlockedAdd(var A: Int16; B: Int16): Int16; overload; register; asse
 Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedAdd(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedAdd(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -161,7 +155,7 @@ Function InterlockedSub(var A: Int16; B: Int16): Int16; overload; register; asse
 Function InterlockedSub(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedSub(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedSub(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedSub(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -184,7 +178,7 @@ Function InterlockedNeg(var I: Int16): Int16; overload; register; assembler;
 Function InterlockedNeg(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedNeg(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedNeg(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedNeg(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -206,7 +200,7 @@ Function InterlockedNot(var I: Int16): Int16; overload; register; assembler;
 Function InterlockedNot(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedNot(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedNot(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedNot(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -228,7 +222,7 @@ Function InterlockedAnd(var A: Int16; B: Int16): Int16; overload; register; asse
 Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedAnd(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedAnd(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -250,7 +244,7 @@ Function InterlockedOr(var A: Int16; B: Int16): Int16; overload; register; assem
 Function InterlockedOr(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedOr(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedOr(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedOr(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -272,7 +266,7 @@ Function InterlockedXor(var A: Int16; B: Int16): Int16; overload; register; asse
 Function InterlockedXor(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedXor(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedXor(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedXor(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -294,7 +288,7 @@ Function InterlockedExchange(var A: Int16; B: Int16): Int16; overload; register;
 Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchange(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -316,7 +310,7 @@ Function InterlockedExchangeAdd(var A: Int16; B: Int16): Int16; overload; regist
 Function InterlockedExchangeAdd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeAdd(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeAdd(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -339,7 +333,7 @@ Function InterlockedExchangeSub(var A: Int16; B: Int16): Int16; overload; regist
 Function InterlockedExchangeSub(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeSub(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeSub(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -362,7 +356,7 @@ Function InterlockedExchangeNeg(var I: Int16): Int16; overload; register; assemb
 Function InterlockedExchangeNeg(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeNeg(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeNeg(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeNeg(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -384,7 +378,7 @@ Function InterlockedExchangeNot(var I: Int16): Int16; overload; register; assemb
 Function InterlockedExchangeNot(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeNot(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeNot(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeNot(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -406,7 +400,7 @@ Function InterlockedExchangeAnd(var A: Int16; B: Int16): Int16; overload; regist
 Function InterlockedExchangeAnd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeAnd(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -428,7 +422,7 @@ Function InterlockedExchangeOr(var A: Int16; B: Int16): Int16; overload; registe
 Function InterlockedExchangeOr(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeOr(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -450,7 +444,7 @@ Function InterlockedExchangeXor(var A: Int16; B: Int16): Int16; overload; regist
 Function InterlockedExchangeXor(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
 Function InterlockedExchangeXor(var A: Int32; B: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
 Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -472,7 +466,7 @@ Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: 
 Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32; out Exchanged: Boolean): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64; overload; register; assembler;
 {$ENDIF}
@@ -490,7 +484,7 @@ Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: 
 Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32): UInt32; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -512,7 +506,7 @@ Function InterlockedBitTest(var I: Int16; Bit: Integer): Boolean; overload; regi
 Function InterlockedBitTest(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTest(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTest(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
 {$ENDIF}
@@ -534,7 +528,7 @@ Function InterlockedBitTestAndSet(var I: Int16; Bit: Integer): Boolean; overload
 Function InterlockedBitTestAndSet(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndSet(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedBitTestAndSet(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndSet(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
 {$ENDIF}
@@ -556,7 +550,7 @@ Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean; overlo
 Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
 {$ENDIF}
@@ -578,7 +572,7 @@ Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean; o
 Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
 {$ENDIF}
@@ -600,7 +594,7 @@ Function InterlockedLoad(var I: Int16): Int16; overload; register; assembler;
 Function InterlockedLoad(var I: UInt32): UInt32; overload; register; assembler;
 Function InterlockedLoad(var I: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedLoad(var I: UInt64): UInt64; overload; register; assembler;
 Function InterlockedLoad(var I: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -622,7 +616,7 @@ Function InterlockedStore(var I: Int16; NewValue: Int16): Int16; overload; regis
 Function InterlockedStore(var I: UInt32; NewValue: UInt32): UInt32; overload; register; assembler;
 Function InterlockedStore(var I: Int32; NewValue: Int32): Int32; overload; register; assembler;
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 Function InterlockedStore(var I: UInt64; NewValue: UInt64): UInt64; overload; register; assembler;
 Function InterlockedStore(var I: Int64; NewValue: Int64): Int64; overload; register; assembler;
 {$ENDIF}
@@ -633,7 +627,6 @@ implementation
 
 uses
   SimpleCPUID;
-
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -700,7 +693,7 @@ asm
 end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedIncrement(var I: UInt64): UInt64;
 asm
@@ -873,7 +866,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedDecrement(var I: UInt64): UInt64;
 asm
@@ -1107,7 +1100,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -1370,7 +1363,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedSub(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -1743,7 +1736,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedNeg(var I: UInt64): UInt64;
 asm
@@ -2125,7 +2118,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedNot(var I: UInt64): UInt64;
 asm
@@ -2531,7 +2524,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -2940,7 +2933,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedOr(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -3350,7 +3343,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedXor(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -3550,7 +3543,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -3692,7 +3685,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -3863,7 +3856,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -4196,7 +4189,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeNeg(var I: UInt64): UInt64;
 asm
@@ -4540,7 +4533,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeNot(var I: UInt64): UInt64;
 asm
@@ -4908,7 +4901,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -5280,7 +5273,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -5652,7 +5645,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64;
 asm
@@ -5934,7 +5927,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64;
 asm
@@ -6150,7 +6143,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64;
 asm
@@ -6394,7 +6387,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean;
 asm
@@ -6580,7 +6573,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndSet(var I: UInt64; Bit: Integer): Boolean;
 asm
@@ -6766,7 +6759,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean;
 asm
@@ -6952,7 +6945,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean;
 asm
@@ -7138,7 +7131,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedLoad(var I: UInt64): UInt64;
 asm
@@ -7410,7 +7403,7 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-{$IFDEF AllowVal64}
+{$IFDEF IncludeVal64}
 
 Function InterlockedStore(var I: UInt64; NewValue: UInt64): UInt64;
 asm
@@ -7530,7 +7523,7 @@ procedure Initialize;
 begin
 with TSimpleCPUID.Create do
 try
-{$IF Defined(AllowVal64) and not Defined(x64)}
+{$IF Defined(IncludeVal64) and not Defined(x64)}
   If not Info.ProcessorFeatures.CX8 then          
     raise EILOUnsupportedInstruction.Create('Instruction CMPXCHG8B is not supported by the CPU.');
   If not Info.ProcessorFeatures.CMOV then
