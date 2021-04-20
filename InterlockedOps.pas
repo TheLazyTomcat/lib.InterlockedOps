@@ -1,3 +1,72 @@
+{-------------------------------------------------------------------------------
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+-------------------------------------------------------------------------------}
+{===============================================================================
+
+  InterlockedOps
+
+    This library provides a set of functions, each performing an atomic
+    operation on a variable - that is, each function is guaranteed to complete
+    its operation in a thread-safe manner.
+
+    It has been created as a replacement and extension of WinAPI-provided
+    interlocked functions, but can be used on any system.
+    Note that some functions, although equally named, behaves differently than
+    those from WinAPI - see description of each function for details.
+
+      WARNING - this entire library is implemented in assembly, and because of
+                that, it can only be compiled for x86 (IA-32) and x86-64 (AMD64)
+                processors.
+
+    Functions for 8bit, 16bit, 32bit and 64bit integer variables, both signed
+    and unsigned, are implemented.
+
+    64bit variants are available in 32bit environment only when symbol
+    EnableVal64onSys32 is defined (see symbols define section for more
+    information). In 64bit environment, they are always available.
+
+    There are also some funtions accepting 128bit variables, but these are only
+    available in 64bit environment and only when symbol EnableVal128 is defined.
+
+    Unless noted otherwise in function description, there are no requirements
+    for memory alignment of any of the passed parameters (as-per Intel
+    Developers Manual, which explicitly states "The integrity of a bus lock is
+    not affected by the alignment of the memory field.").
+
+    Note that upon return of any of the provided function, the accessed variable
+    can already have a different value than expected if it was accessed by other
+    thread(s). Whatever the function returns is a state that was valid during
+    the internal lock.
+
+  Version 1.0 (2021-04-20)
+
+  Last change 2021-04-20
+
+  ©2021 František Milt
+
+  Contacts:
+    František Milt: frantisek.milt@gmail.com
+
+  Support:
+    If you find this code useful, please consider supporting its author(s) by
+    making a small donation using the following link(s):
+
+      https://www.paypal.me/FMilt
+
+  Changelog:
+    For detailed changelog and history please refer to this git repository:
+
+      github.com/TheLazyTomcat/Lib.InterlockedOps
+
+  Dependencies:
+    AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
+    SimpleCPUID - github.com/TheLazyTomcat/Lib.SimpleCPUID
+
+===============================================================================}
 unit InterlockedOps;
 {
   InterlockedOps_PurePascal
@@ -35,9 +104,51 @@ unit InterlockedOps;
 {$H+}
 
 //------------------------------------------------------------------------------
+{
+  EnableVal64onSys32
 
+  When defined, 64bit variants of all functions (that is, variants working with
+  64bit parameters) are provided in 32bit environment. When not defined, these
+  variants are available only in 64bit environment.
+
+  Since implementing proper locking of 64bit primitive in 32bit mode is
+  depending on instructions CMPXCHG8B and CMOV, which are not present on very
+  old processors, this symbol is here to disable such code if there is a need
+  to run this library on legacy hardware.
+
+  Note that whether the unit was compiled with support for 64bit variables
+  can be discerned from public constant ILO_64BIT_VARS - when true, the 64bit
+  variants are provided, otherwise they are not.
+
+    WARNING - when binary compiled with this symbol defined is run on hardware
+              that does not support needed instructions, then an exception of
+              type EILOUnsupportedInstruction is raised during unit
+              initialization.
+
+  By default enabled.
+}
 {$DEFINE EnableVal64onSys32}
 
+{
+  EnableVal128
+
+  When enabled, 128bit variants of function InterlockedCompareExchange are
+  provided, otherwise they are not.
+
+  Whether the unit was compiled with support for 128bit variables can be
+  discerned from public constant ILO_128BIT_VARS - when true, the 128bit
+  variants are provided, otherwise they are not.
+
+    WARNING - these functions are available only in 64bit mode, never in 32bit
+              mode. Therefore, this symbol has no effect in 32bit mode.
+
+    WARNING - when binary compiled with this symbol defined is run on hardware
+              that does not support needed instruction, then an exception of
+              type EILOUnsupportedInstruction is raised during unit
+              initialization.
+
+  By default enabled.
+}
 {$DEFINE EnableVal128}
 
 //------------------------------------------------------------------------------
@@ -61,13 +172,36 @@ uses
   SysUtils,
   AuxTypes;
 
-{
-CmpExch in 128bit (64bit system only)
-}
+{===============================================================================
+    Informative public constants
+===============================================================================}
 const
   ILO_64BIT_VARS  = {$IFDEF IncludeVal64}True{$ELSE}False{$ENDIF};
   ILO_128BIT_VARS = {$IFDEF IncludeVal128}True{$ELSE}False{$ENDIF};
 
+{===============================================================================
+    Some helper types
+===============================================================================}
+{
+  Type UInt128 is here only to provide 128 bits long type that could be used in
+  calls to 128bit variants of provided functions.
+}
+type
+  UInt128 = packed record
+    case Integer of
+      0:(Low:     UInt64;
+         High:    UInt64);
+      1:(QWords:  array[0..1] of UInt64);
+      2:(DWords:  array[0..3] of UInt32);
+      3:(Words:   array[0..7] of UInt16);
+      4:(Bytes:   array[0..15] of UInt8);
+  end;
+   PUInt128 =  ^UInt128;
+  PPUInt128 = ^PUInt128;
+
+{===============================================================================
+    Library-specific exception classes
+===============================================================================}
 type
   EILOException = class(Exception);
 
@@ -78,7 +212,11 @@ type
                              Interlocked increment
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedIncrement
 
+    Increments I by one and returns the resulting (incremented) value.
+}
 Function InterlockedIncrement(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedIncrement(var I: Int8): Int8; overload; register; assembler;
 
@@ -100,7 +238,11 @@ Function InterlockedIncrement(var I: Pointer): Pointer; overload; register; asse
                              Interlocked decrement
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedDecrement
 
+    Decrements I by one and returns the resulting (decremented) value.
+}
 Function InterlockedDecrement(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedDecrement(var I: Int8): Int8; overload; register; assembler;
 
@@ -122,7 +264,11 @@ Function InterlockedDecrement(var I: Pointer): Pointer; overload; register; asse
                               Interlocked addition
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedAdd
 
+    Sets A to a sum of A and B and returns the resulting value.
+}
 Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedAdd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -145,7 +291,11 @@ Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer; overload; register
                             Interlocked subtraction
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedSub
 
+    Subtracts B from A and returns the resulting value.
+}
 Function InterlockedSub(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedSub(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -168,7 +318,14 @@ Function InterlockedSub(var A: Pointer; B: Pointer): Pointer; overload; register
                               Interlocked negation
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedNeg
 
+    Negates (changes sign) of I and returns the resulting value.
+
+    Note that unsigned integers are treated as signed. For example UInt8(255)
+    is seen as Int8(-1), and its negative is therefore UInt8(1).
+}
 Function InterlockedNeg(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedNeg(var I: Int8): Int8; overload; register; assembler;
 
@@ -190,7 +347,11 @@ Function InterlockedNeg(var I: Pointer): Pointer; overload; register; assembler;
                             Interlocked logical not
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedNot
 
+    Performs logical NOT (flips all bits) of I and returns the resulting value.
+}
 Function InterlockedNot(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedNot(var I: Int8): Int8; overload; register; assembler;
 
@@ -212,7 +373,16 @@ Function InterlockedNot(var I: Pointer): Pointer; overload; register; assembler;
                             Interlocked logical and
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedAnd
 
+    Performs logical AND of A and B and returns the resulting value.
+
+    WARNING - this function differs from InterlockedAnd provided by WinAPI.
+              There, it returns original value of the variable, here it returns
+              the resulting value.
+              WinAPI behavior is provided by function InterlockedExchangeAnd.
+}
 Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedAnd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -234,7 +404,16 @@ Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer; overload; register
                              Interlocked logical or
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedOr
 
+    Performs logical OR of A and B and returns the resulting value.
+
+    WARNING - this function differs from InterlockedOr provided by WinAPI.
+              There, it returns original value of the variable, here it returns
+              the resulting value.
+              WinAPI behavior is provided by function InterlockedExchangeOr.
+}
 Function InterlockedOr(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedOr(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -256,7 +435,16 @@ Function InterlockedOr(var A: Pointer; B: Pointer): Pointer; overload; register;
                              Interlocked logical xor
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedXor
 
+    Performs logical XOR of A and B and returns the resulting value.
+
+    WARNING - this function differs from InterlockedXor provided by WinAPI.
+              There, it returns original value of the variable, here it returns
+              the resulting value.
+              WinAPI behavior is provided by function InterlockedExchangeXor.
+}
 Function InterlockedXor(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedXor(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -278,7 +466,11 @@ Function InterlockedXor(var A: Pointer; B: Pointer): Pointer; overload; register
                               Interlocked exchange
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchange
 
+    Sets A to a value of B and returns original value of A.
+}
 Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchange(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -300,7 +492,11 @@ Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload; reg
                           Interlocked exchange and add
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeAdd
 
+    Sets A to a sum of A and B and returns original value of A.
+}
 Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeAdd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -323,7 +519,11 @@ Function InterlockedExchangeAdd(var A: Pointer; B: Pointer): Pointer; overload; 
                        Interlocked exchange and subtract
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeSub
 
+    Subtracts B from A and returns original value of A.
+}
 Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeSub(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -346,7 +546,14 @@ Function InterlockedExchangeSub(var A: Pointer; B: Pointer): Pointer; overload; 
                        Interlocked exchange and negation
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeNeg
 
+    Negates (changes sign) of I and returns its original value.
+
+    Note that unsigned integers are treated as signed. For example UInt8(255)
+    is seen as Int8(-1), and its negative is therefore UInt8(1).
+}
 Function InterlockedExchangeNeg(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeNeg(var I: Int8): Int8; overload; register; assembler;
 
@@ -368,7 +575,11 @@ Function InterlockedExchangeNeg(var I: Pointer): Pointer; overload; register; as
                       Interlocked exchange and logical not
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeNot
 
+    Performs logical NOT (flips all bits) of I and returns its original value.
+}
 Function InterlockedExchangeNot(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeNot(var I: Int8): Int8; overload; register; assembler;
 
@@ -390,7 +601,11 @@ Function InterlockedExchangeNot(var I: Pointer): Pointer; overload; register; as
                       Interlocked exchange and logical and
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeAnd
 
+    Performs logical AND of A and B and returns original value of A.
+}
 Function InterlockedExchangeAnd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeAnd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -412,7 +627,11 @@ Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer; overload; 
                       Interlocked exchange and logical or
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeOr
 
+    Performs logical OR of A and B and returns original value of A.
+}
 Function InterlockedExchangeOr(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeOr(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -434,7 +653,11 @@ Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer; overload; r
                       Interlocked exchange and logical xor
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedExchangeXor
 
+    Performs logical XOR of A and B and returns original value of A.
+}
 Function InterlockedExchangeXor(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
 Function InterlockedExchangeXor(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
@@ -456,7 +679,20 @@ Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer; overload; 
                         Interlocked compare and exchange                         
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedCompareExchange
 
+    Compares value of Destination with Comparand. When they are equal, the
+    Destination is set to a value passed in Exchange. If they do not match,
+    then nothing is done.
+    Whether the exchange took place or not is indicated by value returned in
+    Exchanged (True = exchange was performed).
+    Returns original value of Destination.
+
+    WARNING - 128bit variant requires the value Destination to be located in
+              memory at 128bit-aligned address, otherwise it will fail with an
+              exception.
+}
 Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8; out Exchanged: Boolean): Int8; overload; register; assembler;
 
@@ -471,10 +707,25 @@ Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand:
 Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64; overload; register; assembler;
 {$ENDIF}
 
+{$IFDEF IncludeVal128}
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128; overload; register; assembler;
+{$ENDIF}
+
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer; overload; register; assembler;
 
 //------------------------------------------------------------------------------
+{
+  InterlockedCompareExchange
 
+    Compares value of Destination with Comparand. When they are equal, the
+    Destination is set to a value passed in Exchange. If they do not match,
+    then nothing is done.
+    Returns original value of Destination.
+
+    WARNING - 128bit variant requires the value Destination to be located in
+              memory at 128bit-aligned address, otherwise it will fail with an
+              exception.
+}
 Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8; overload; register; assembler;
 Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8): Int8; overload; register; assembler;
 
@@ -489,6 +740,10 @@ Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand:
 Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64; overload; register; assembler;
 {$ENDIF}
 
+{$IFDEF IncludeVal128}
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128; overload; register; assembler;
+{$ENDIF}
+
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer): Pointer; overload; register; assembler;
 
 {===============================================================================
@@ -496,7 +751,12 @@ Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand
                               Interlocked bit test
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedBitTest
 
+    Returns value of bit (True = 1/set, False = 0/clear) selected by a parameter
+    Bit in variable I.
+}
 Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTest(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
 
@@ -518,7 +778,12 @@ Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload; re
                           Interlocked bit test and set
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedBitTestAndSet
 
+    Sets a bit (changes it to 1) selected by a parameter Bit in variable I and
+    returns original value of this bit.
+}
 Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndSet(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
 
@@ -540,7 +805,12 @@ Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overlo
                          Interlocked bit test and reset
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedBitTestAndReset
 
+    Resets/clears a bit (changes it to 0) selected by a parameter Bit in
+    variable I and returns original value of this bit.
+}
 Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
 
@@ -562,7 +832,13 @@ Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; over
                       Interlocked bit test and complement
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedBitTestAndComplement
 
+    Complements a bit (swiches its value - if it was 0, it will become 1 and
+    vice-versa) selected by a parameter Bit in variable I and returns original
+    value of this bit.
+}
 Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
 Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
 
@@ -584,7 +860,11 @@ Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean;
                                 Interlocked load
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedLoad
 
+    Atomically obtains value of I and returns it.
+}
 Function InterlockedLoad(var I: UInt8): UInt8; overload; register; assembler;
 Function InterlockedLoad(var I: Int8): Int8; overload; register; assembler;
 
@@ -606,7 +886,12 @@ Function InterlockedLoad(var I: Pointer): Pointer; overload; register; assembler
                                Interlocked store                                                               
 --------------------------------------------------------------------------------
 ===============================================================================}
+{
+  InterlockedStore
 
+    Sets variable I to a value passed in parameter NewValue and returns
+    original value of I.
+}
 Function InterlockedStore(var I: UInt8; NewValue: UInt8): UInt8; overload; register; assembler;
 Function InterlockedStore(var I: Int8; NewValue: Int8): Int8; overload; register; assembler;
 
@@ -6005,6 +6290,80 @@ end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+{$IFDEF IncludeVal128}
+
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128;
+asm
+{$IFDEF Windows}
+{
+  Parameters on enter:
+
+    RCX - pointer to a memory allocated for result
+    RDX - pointer to Destination parameter
+    R8  - pointer to Exchange parameter
+    R9  - pointer to Comparand parameter
+
+    Pointer to Exchanged is passed on stack.
+
+  Result is copied into location passed in RCX and this address is also copied
+  into RAX.
+}
+          PUSH  RBX
+
+          MOV   R10, RCX
+          MOV   R11, RDX
+
+          MOV   RBX, qword ptr [R8]
+          MOV   RCX, qword ptr [R8 + 8]
+
+          MOV   RAX, qword ptr [R9]
+          MOV   RDX, qword ptr [R9 + 8]
+
+    LOCK  CMPXCHG16B dqword ptr [R11]
+
+          MOV   RBX, qword ptr [Exchanged]
+          SETZ  byte ptr [RBX]
+
+          MOV   qword ptr [R10], RAX
+          MOV   qword ptr [R10 + 8], RDX
+          MOV   RAX, R10
+
+          POP   RBX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+{
+  Parameters on enter:
+
+    RDI - pointer to Destination parameter
+    RSI - lower 8 bytes of Exchange parameter
+    RDX - higher 8 bytes of Exchange parameter
+    RCX - lower 8 bytes of Comparand parameter
+    R8  - higher 8 bytes of Comparand parameter
+    R9  - pointer to Exchanged parameter
+
+  Lower 8 bytes of result are returned in RAX, higher 8 bytes in RDX.
+}
+          PUSH  RBX
+
+          MOV   RBX, RSI  {Exchange.Low}
+          XCHG  RCX, RDX  {Exchange.High}
+
+          MOV   RAX, RDX  {Comparand.Low}
+          MOV   RDX, R8   {Comparand.High}
+
+    LOCK  CMPXCHG16B dqword ptr [RDI]
+
+          SETZ  byte ptr [R9]
+
+          POP   RBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer;
 asm
 {$IFDEF x64}
@@ -6201,6 +6560,52 @@ asm
 
           POP   EDI
           POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal128}
+
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128;
+asm
+{$IFDEF Windows}
+
+          PUSH  RBX
+
+          MOV   R10, RCX
+          MOV   R11, RDX
+
+          MOV   RBX, qword ptr [R8]
+          MOV   RCX, qword ptr [R8 + 8]
+
+          MOV   RAX, qword ptr [R9]
+          MOV   RDX, qword ptr [R9 + 8]
+
+    LOCK  CMPXCHG16B dqword ptr [R11]
+
+          MOV   qword ptr [R10], RAX
+          MOV   qword ptr [R10 + 8], RDX
+          MOV   RAX, R10
+
+          POP   RBX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  RBX
+
+          MOV   RBX, RSI  {Exchange.Low}
+          XCHG  RCX, RDX  {Exchange.High}
+
+          MOV   RAX, RDX  {Comparand.Low}
+          MOV   RDX, R8   {Comparand.High}
+
+    LOCK  CMPXCHG16B dqword ptr [RDI]
+
+          POP   RBX
 
 {$ENDIF}
 end;
@@ -7524,12 +7929,15 @@ begin
 with TSimpleCPUID.Create do
 try
 {$IF Defined(IncludeVal64) and not Defined(x64)}
-  If not Info.ProcessorFeatures.CX8 then          
+  If not Info.ProcessorFeatures.CX8 then
     raise EILOUnsupportedInstruction.Create('Instruction CMPXCHG8B is not supported by the CPU.');
   If not Info.ProcessorFeatures.CMOV then
     raise EILOUnsupportedInstruction.Create('Instruction CMOVcc is not supported by the CPU.');
 {$IFEND}
-  //If not Info.ProcessorFeatures.CMPXCHG16B    
+{$IFDEF IncludeVal128}
+  If not Info.ProcessorFeatures.CMPXCHG16B then
+    raise EILOUnsupportedInstruction.Create('Instruction CMPXCHG16B is not supported by the CPU.');
+{$ENDIF}
 finally
   Free;
 end;
