@@ -34,17 +34,18 @@
 
     Unless noted otherwise in function description, there are no requirements
     for memory alignment of any of the passed parameters (as-per Intel
-    Developers Manual, which explicitly states "The integrity of a bus lock is
-    not affected by the alignment of the memory field.").
+    Developers Manual, which explicitly states "The integrity of the LOCK
+    prefix is not affected by the alignment of the memory field. Memory locking
+    is observed for arbitrarily misaligned fields.").
 
     Note that upon return of any of the provided function, the accessed variable
     can already have a different value than expected if it was accessed by other
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.0 (2021-04-20)
+  Version 1.0 (2021-04-21)
 
-  Last change 2021-04-20
+  Last change 2021-04-21
 
   ©2021 František Milt
 
@@ -64,7 +65,9 @@
 
   Dependencies:
     AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
-    SimpleCPUID - github.com/TheLazyTomcat/Lib.SimpleCPUID
+  * SimpleCPUID - github.com/TheLazyTomcat/Lib.SimpleCPUID
+
+  SimpleCPUID is required only when symbol AssertInstructions is defined.
 
 ===============================================================================}
 unit InterlockedOps;
@@ -120,10 +123,10 @@ unit InterlockedOps;
   can be discerned from public constant ILO_64BIT_VARS - when true, the 64bit
   variants are provided, otherwise they are not.
 
-    WARNING - when binary compiled with this symbol defined is run on hardware
-              that does not support needed instructions, then an exception of
-              type EILOUnsupportedInstruction is raised during unit
-              initialization.
+    WARNING - when binary compiled with both this symbol and symbol
+              AssertInstructions defined is run on hardware that does not
+              support needed instructions, then an exception of type
+              EILOUnsupportedInstruction is raised during unit initialization.
 
   By default enabled.
 }
@@ -142,14 +145,32 @@ unit InterlockedOps;
     WARNING - these functions are available only in 64bit mode, never in 32bit
               mode. Therefore, this symbol has no effect in 32bit mode.
 
-    WARNING - when binary compiled with this symbol defined is run on hardware
-              that does not support needed instruction, then an exception of
-              type EILOUnsupportedInstruction is raised during unit
-              initialization.
+    WARNING - when binary compiled with both this symbol and symbol
+              AssertInstructions defined is run on hardware that does not
+              support needed instructions, then an exception of type
+              EILOUnsupportedInstruction is raised during unit initialization.
 
   By default enabled.
 }
 {$DEFINE EnableVal128}
+
+{
+  AssertInstructions
+
+  When defined, a check whether the current CPU supports needed instructions
+  is performed during unit initialization. If they are not supported, then an
+  EILOUnsupportedInstruction exception is raised.
+
+  When not defined, no check is made - but be warned that this may lead to
+  errors when calling functions that are using those instructions.
+
+  This symbol is here for situations where CPU can run the instruction but
+  CPUID for some reason reports it as unsupported (behavior observed on
+  virtualized guest systems).
+
+  By default enabled.
+}
+{$DEFINE AssertInstructions}
 
 //------------------------------------------------------------------------------
 // do not touch following define checks
@@ -910,8 +931,10 @@ Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer; overload;
 
 implementation
 
+{$IFDEF AssertInstructions}
 uses
   SimpleCPUID;
+{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -7924,6 +7947,8 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
+{$IFDEF AssertInstructions}
+
 procedure Initialize;
 begin
 with TSimpleCPUID.Create do
@@ -7947,6 +7972,8 @@ end;
 
 initialization
   Initialize;
+
+{$ENDIF}
 
 end.
 
