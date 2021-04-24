@@ -23,7 +23,8 @@
                 processors.
 
     Functions for 8bit, 16bit, 32bit and 64bit integer variables, both signed
-    and unsigned, are implemented.
+    and unsigned, are implemented. There are also variants for pointers and
+    some functions are implemented for boolean variables.
 
     64bit variants are available in 32bit environment only when symbol
     EnableVal64onSys32 is defined (see symbols define section for more
@@ -43,9 +44,9 @@
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.0 (2021-04-21)
+  Version 1.1 (2021-04-24)
 
-  Last change 2021-04-21
+  Last change 2021-04-24
 
   ©2021 František Milt
 
@@ -226,7 +227,8 @@ type
 type
   EILOException = class(Exception);
 
-  EILOUnsupportedInstruction = class(EILOException);
+  EILOUnsupportedInstruction   = class(EILOException);
+  EILOUnsupportedImplementation = class(EILOException);
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -389,6 +391,8 @@ Function InterlockedNot(var I: Int64): Int64; overload; register; assembler;
 
 Function InterlockedNot(var I: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedNot(var I: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                             Interlocked logical and
@@ -419,6 +423,8 @@ Function InterlockedAnd(var A: Int64; B: Int64): Int64; overload; register; asse
 {$ENDIF}
 
 Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+
+Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -451,6 +457,8 @@ Function InterlockedOr(var A: Int64; B: Int64): Int64; overload; register; assem
 
 Function InterlockedOr(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedOr(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked logical xor
@@ -482,6 +490,8 @@ Function InterlockedXor(var A: Int64; B: Int64): Int64; overload; register; asse
 
 Function InterlockedXor(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedXor(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked exchange
@@ -507,6 +517,8 @@ Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload; register;
 {$ENDIF}
 
 Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+
+Function InterlockedExchange(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -617,6 +629,8 @@ Function InterlockedExchangeNot(var I: Int64): Int64; overload; register; assemb
 
 Function InterlockedExchangeNot(var I: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedExchangeNot(var I: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical and
@@ -642,6 +656,8 @@ Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64; overload; regist
 {$ENDIF}
 
 Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+
+Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -669,6 +685,8 @@ Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64; overload; registe
 
 Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical xor
@@ -694,6 +712,8 @@ Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64; overload; regist
 {$ENDIF}
 
 Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+
+Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -734,6 +754,8 @@ Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand
 
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer; overload; register; assembler;
 
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean; overload; register; assembler;
+
 //------------------------------------------------------------------------------
 {
   InterlockedCompareExchange
@@ -766,6 +788,8 @@ Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand
 {$ENDIF}
 
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer): Pointer; overload; register; assembler;
+
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean): Boolean; overload; register; assembler;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -902,6 +926,8 @@ Function InterlockedLoad(var I: Int64): Int64; overload; register; assembler;
 
 Function InterlockedLoad(var I: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedLoad(var I: Boolean): Boolean; overload; register; assembler;
+
 {===============================================================================
 --------------------------------------------------------------------------------
                                Interlocked store                                                               
@@ -929,11 +955,18 @@ Function InterlockedStore(var I: Int64; NewValue: Int64): Int64; overload; regis
 
 Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer; overload; register; assembler;
 
+Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean; overload; register; assembler;
+
 implementation
 
 {$IFDEF AssertInstructions}
 uses
   SimpleCPUID;
+{$ENDIF}
+
+{$IFDEF FPC_DisableWarns}
+  {$DEFINE FPCDWM}
+  {$DEFINE W6018:={$WARN 6018 OFF}} // unreachable code
 {$ENDIF}
 
 {===============================================================================
@@ -2567,6 +2600,47 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedNot(var I: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2977,6 +3051,51 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          AND   R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+          MOV   AL, R8B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          AND   BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, BL
+          
+          POP   EBX
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -3383,6 +3502,51 @@ asm
 
           POP   EBX
           
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          OR    R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+          MOV   AL, R8B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          OR    BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, BL
+          
+          POP   EBX
+
 {$ENDIF}
 end;
 
@@ -3796,6 +3960,51 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          XOR   R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+          MOV   AL, R8B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          XOR   BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, BL
+          
+          POP   EBX
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -3936,6 +4145,14 @@ asm
           MOV   EAX, B
 
 {$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: Boolean; B: Boolean): Boolean;
+asm
+    LOCK  XCHG  byte ptr [A], B
+          MOV   AL, B
 end;
 
 
@@ -4968,6 +5185,43 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeNot(var I: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -5332,6 +5586,47 @@ asm
           AND   EBX, EDX
 
     LOCK  CMPXCHG dword ptr [ECX], EBX
+
+          JNZ   @TryOutStart
+
+          POP   EBX
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          AND   R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          AND   BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
 
           JNZ   @TryOutStart
 
@@ -5712,6 +6007,47 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          OR    R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          OR    BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          POP   EBX
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -6084,6 +6420,47 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [A]
+
+          MOV   R8B, AL
+          XOR   R8B, B
+          AND   R8B, 1
+
+    LOCK  CMPXCHG byte ptr [A], R8B
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          XOR   BL, DL
+          AND   BL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          POP   EBX
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -6409,6 +6786,30 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+          MOV   AL, Comparand
+
+    LOCK  CMPXCHG byte ptr [Destination], Exchange
+
+          SETZ  byte ptr [Exchanged]
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          XCHG  EAX, ECX
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          MOV   EDX, Exchanged
+          SETZ  byte ptr [EDX]
+
+{$ENDIF}
+end;
+
 //------------------------------------------------------------------------------
 
 Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8;
@@ -6650,6 +7051,25 @@ asm
           XCHG  EAX, ECX
 
     LOCK  CMPXCHG dword ptr [ECX], EDX
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+          MOV   AL, Comparand
+
+    LOCK  CMPXCHG byte ptr [Destination], Exchange
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          XCHG  EAX, ECX
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
 
 {$ENDIF}
 end;
@@ -7650,6 +8070,15 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedLoad(var I: Boolean): Boolean;
+asm
+          XOR   DL, DL
+    LOCK  XADD  byte ptr [I], DL
+          MOV   AL, DL
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -7940,6 +8369,35 @@ asm
 {$ENDIF}
 end;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+    LOCK  CMPXCHG byte ptr [I], NewValue
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -7947,10 +8405,13 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-{$IFDEF AssertInstructions}
-
 procedure Initialize;
 begin
+{$IFDEF FPCDWM}{$PUSH}W6018{$ENDIF}
+If (Ord(False) <> 0) or (Ord(True) <> 1) or (SizeOf(Boolean) <> 1) then
+  raise EILOUnsupportedImplementation.Create('Unsupported implementation of type Boolean.');
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+{$IFDEF AssertInstructions}
 with TSimpleCPUID.Create do
 try
 {$IF Defined(IncludeVal64) and not Defined(x64)}
@@ -7966,14 +8427,13 @@ try
 finally
   Free;
 end;
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
 
 initialization
   Initialize;
-
-{$ENDIF}
 
 end.
 
