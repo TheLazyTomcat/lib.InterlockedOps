@@ -1346,6 +1346,7 @@ uses
 
 {$IFDEF FPC_DisableWarns}
   {$DEFINE FPCDWM}
+  {$DEFINE W4055:={$WARN 4055 OFF}} // Conversion between ordinals and pointers is not portable
   {$DEFINE W6018:={$WARN 6018 OFF}} // unreachable code
 {$ENDIF}
 
@@ -1433,11 +1434,13 @@ end;
 
 Function InterlockedIncrementPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedIncrement64(I));
 {$ELSE}
 Result := Pointer(InterlockedIncrement32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -1592,11 +1595,13 @@ end;
 
 Function InterlockedDecrementPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedDecrement64(I));
 {$ELSE}
 Result := Pointer(InterlockedDecrement32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -1780,22 +1785,26 @@ end;
 
 Function InterlockedAddPtr(A: Pointer; B: PtrInt): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedAdd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedAdd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAddPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedAdd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedAdd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -1993,22 +2002,26 @@ end;
 
 Function InterlockedSubPtr(A: Pointer; B: PtrInt): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedSub64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedSub32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSubPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedSub64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedSub32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -2265,11 +2278,13 @@ end;
 
 Function InterlockedNegPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedNeg64(I));
 {$ELSE}
 Result := Pointer(InterlockedNeg32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -2519,11 +2534,13 @@ end;
 
 Function InterlockedNotPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedNot64(I));
 {$ELSE}
 Result := Pointer(InterlockedNot32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -2833,11 +2850,13 @@ end;
 
 Function InterlockedAndPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedAnd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedAnd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -3151,11 +3170,13 @@ end;
 
 Function InterlockedOrPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedOr64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedOr32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -3469,11 +3490,13 @@ end;
 
 Function InterlockedXorPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedXor64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedXor32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -3666,11 +3689,13 @@ end;
 
 Function InterlockedExchangePtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchange64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchange32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -3828,22 +3853,26 @@ end;
 
 Function InterlockedExchangeAddPtr(A: Pointer; B: PtrInt): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeAdd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeAdd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAddPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeAdd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeAdd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -3998,22 +4027,26 @@ end;
 
 Function InterlockedExchangeSubPtr(A: Pointer; B: PtrInt): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeSub64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeSub32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSubPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeSub64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeSub32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -4253,11 +4286,13 @@ end;
 
 Function InterlockedExchangeNegPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeNeg64(I));
 {$ELSE}
 Result := Pointer(InterlockedExchangeNeg32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //==============================================================================
@@ -4490,11 +4525,13 @@ end;
 
 Function InterlockedExchangeNotPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeNot64(I));
 {$ELSE}
 Result := Pointer(InterlockedExchangeNot32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -4783,11 +4820,13 @@ end;
 
 Function InterlockedExchangeAndPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeAnd64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeAnd32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -5080,11 +5119,13 @@ end;
 
 Function InterlockedExchangeOrPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeOr64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeOr32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -5377,11 +5418,13 @@ end;
 
 Function InterlockedExchangeXorPtr(A: Pointer; B: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedExchangeXor64(A,UInt64(B)));
 {$ELSE}
 Result := Pointer(InterlockedExchangeXor32(A,UInt32(B)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -5695,11 +5738,13 @@ end;
 
 Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedCompareExchange64(Destination,UInt64(Exchange),UInt64(Comparand),Exchanged));
 {$ELSE}
 Result := Pointer(InterlockedCompareExchange32(Destination,UInt32(Exchange),UInt32(Comparand),Exchanged));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -5936,11 +5981,13 @@ end;
 
 Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedCompareExchange64(Destination,UInt64(Exchange),UInt64(Comparand)));
 {$ELSE}
 Result := Pointer(InterlockedCompareExchange32(Destination,UInt32(Exchange),UInt32(Comparand)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -6823,11 +6870,13 @@ end;
 
 Function InterlockedLoadPtr(I: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedLoad64(I));
 {$ELSE}
 Result := Pointer(InterlockedLoad32(I));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -7050,11 +7099,13 @@ end;
 
 Function InterlockedStorePtr(I: Pointer; NewValue: Pointer): Pointer;
 begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
 {$IFDEF Ptr64}
 Result := Pointer(InterlockedStore64(I,UInt64(NewValue)));
 {$ELSE}
 Result := Pointer(InterlockedStore32(I,UInt32(NewValue)));
 {$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
