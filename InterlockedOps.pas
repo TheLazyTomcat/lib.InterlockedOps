@@ -101,9 +101,17 @@ unit InterlockedOps;
 
 {$IFDEF FPC}
   {$MODE ObjFPC}
+  {$INLINE ON}
+  {$DEFINE CanInline}
   {$ASMMODE Intel}
   {$DEFINE FPC_DisableWarns}
   {$MACRO ON}
+{$ELSE}
+  {$IF CompilerVersion >= 17 then}  // Delphi 2005+
+    {$DEFINE CanInline}
+  {$ELSE}
+    {$UNDEF CanInline}
+  {$IFEND}
 {$ENDIF}
 {$H+}
 
@@ -194,6 +202,12 @@ uses
   SysUtils,
   AuxTypes;
 
+{$IF SizeOf(Pointer) = 8}
+  {$DEFINE Ptr64}
+{$ELSEIF SizeOf(Pointer) <> 4}
+  {$MESSAGE FATAL 'Unsupported size of pointers.'}
+{$IFEND}
+
 {===============================================================================
     Informative public constants
 ===============================================================================}
@@ -235,727 +249,1093 @@ type
                              Interlocked increment
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedIncrement
 
-    Increments I by one and returns the resulting (incremented) value.
-}
-Function InterlockedIncrement(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedIncrement(var I: Int8): Int8; overload; register; assembler;
+    Increments variable (pointed to by) I by one and returns the resulting
+    (incremented) value.
 
-Function InterlockedIncrement(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedIncrement(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedIncrement(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedIncrement(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedIncrement8(I: Pointer): UInt8; register; assembler;
+Function InterlockedIncrement16(I: Pointer): UInt16; register; assembler;
+Function InterlockedIncrement32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedIncrement64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedIncrementPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedIncrement(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedIncrement(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}  
+
+Function InterlockedIncrement(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedIncrement(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedIncrement(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedIncrement(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedIncrement(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedIncrement(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedIncrement(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked decrement
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedDecrement
 
-    Decrements I by one and returns the resulting (decremented) value.
-}
-Function InterlockedDecrement(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedDecrement(var I: Int8): Int8; overload; register; assembler;
+    Decrements variable (pointed to by) I by one and returns the resulting
+    (decremented) value.
 
-Function InterlockedDecrement(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedDecrement(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedDecrement(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedDecrement(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedDecrement8(I: Pointer): UInt8; register; assembler;
+Function InterlockedDecrement16(I: Pointer): UInt16; register; assembler;
+Function InterlockedDecrement32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedDecrement64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedDecrementPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrement(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedDecrement(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedDecrement(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedDecrement(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedDecrement(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedDecrement(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrement(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedDecrement(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedDecrement(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked addition
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedAdd
 
-    Sets A to a sum of A and B and returns the resulting value.
-}
-Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedAdd(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Sets variable (pointed to by) A to a sum A and B and returns the resulting
+    value.
 
-Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedAdd(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedAdd(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedAdd8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedAdd16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedAdd32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedAdd64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedAddPtr(A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAddPtr(A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedAdd(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer; overload; register; assembler;
-Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                             Interlocked subtraction
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedSub
 
-    Subtracts B from A and returns the resulting value.
-}
-Function InterlockedSub(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedSub(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Subtracts B from variable (pointed to by) A and returns the resulting
+    value.
 
-Function InterlockedSub(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedSub(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedSub(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedSub(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedSub8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedSub16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedSub32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedSub64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedSubPtr(A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSubPtr(A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedSub(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedSub(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedSub(var A: UInt32; B: UInt32): UInt32; overload{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedSub(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedSub(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedSub(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer; overload; register; assembler;
-Function InterlockedSub(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedSub(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked negation
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedNeg
 
-    Negates (changes sign) of I and returns the resulting value.
+    Negates (changes sign) of variable (pointed to by) I and returns the
+    resulting value.
 
-    Note that unsigned integers are treated as signed. For example UInt8(255)
-    is seen as Int8(-1), and its negative is therefore UInt8(1).
-}
-Function InterlockedNeg(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedNeg(var I: Int8): Int8; overload; register; assembler;
+    Note that unsigned integers are treated as signed integers with the same
+    bit pattern. For example UInt8(255) is seen as Int8(-1), and its negative
+    is therefore UInt8(1).
 
-Function InterlockedNeg(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedNeg(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedNeg(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedNeg(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedNeg8(I: Pointer): UInt8; register; assembler;
+Function InterlockedNeg16(I: Pointer): UInt16; register; assembler;
+Function InterlockedNeg32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedNeg64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedNegPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNeg(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNeg(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedNeg(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNeg(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedNeg(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNeg(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedNeg(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedNeg(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedNeg(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNeg(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedNeg(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedNeg(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                             Interlocked logical not
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedNot
 
-    Performs logical NOT (flips all bits) of I and returns the resulting value.
-}
-Function InterlockedNot(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedNot(var I: Int8): Int8; overload; register; assembler;
+    Performs logical NOT (flips all bits) of variable (pointed to by) I and
+    returns the resulting value.
 
-Function InterlockedNot(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedNot(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedNot(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedNot(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedNot8(I: Pointer): UInt8; register; assembler;
+Function InterlockedNot16(I: Pointer): UInt16; register; assembler;
+Function InterlockedNot32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedNot64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedNotPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNotBool(I: Pointer): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNot(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNot(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedNot(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNot(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedNot(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNot(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedNot(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedNot(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedNot(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedNot(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedNot(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedNot(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedNot(var I: Boolean): Boolean; overload; register; assembler;
+Function InterlockedNot(var I: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                             Interlocked logical and
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedAnd
 
-    Performs logical AND of A and B and returns the resulting value.
+    Performs logical AND of variable (pointed to by) A with B, stores the
+    result back in A and returns it.
 
     WARNING - this function differs from InterlockedAnd provided by WinAPI.
               There, it returns original value of the variable, here it returns
               the resulting value.
               WinAPI behavior is provided by function InterlockedExchangeAnd.
-}
-Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedAnd(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
-Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedAnd(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedAnd(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedAnd8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedAnd16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedAnd32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedAnd64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedAndPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAndBool(A: Pointer; B: Boolean): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAnd(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAnd(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAnd(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedAnd(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedAnd(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked logical or
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedOr
 
-    Performs logical OR of A and B and returns the resulting value.
+    Performs logical OR of variable (pointed to by) A with B, stores the
+    result back in A and returns it.
 
     WARNING - this function differs from InterlockedOr provided by WinAPI.
               There, it returns original value of the variable, here it returns
               the resulting value.
               WinAPI behavior is provided by function InterlockedExchangeOr.
-}
-Function InterlockedOr(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedOr(var A: Int8; B: Int8): Int8; overload; register; assembler;
+              
+-------------------------------------------------------------------------------}
 
-Function InterlockedOr(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedOr(var A: Int16; B: Int16): Int16; overload; register; assembler;
+Function InterlockedOr8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedOr16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedOr32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedOr64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedOrPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedOrBool(A: Pointer; B: Boolean): Boolean; register; assembler;
 
-Function InterlockedOr(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedOr(var A: Int32; B: Int32): Int32; overload; register; assembler;
+//------------------------------------------------------------------------------
+
+Function InterlockedOr(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedOr(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedOr(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedOr(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedOr(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedOr(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedOr(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedOr(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedOr(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedOr(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedOr(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedOr(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedOr(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedOr(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                              Interlocked logical xor
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedXor
 
-    Performs logical XOR of A and B and returns the resulting value.
+    Performs logical XOR of variable (pointed to by) A with B, stores the
+    result back in A and returns it.
 
     WARNING - this function differs from InterlockedXor provided by WinAPI.
               There, it returns original value of the variable, here it returns
               the resulting value.
               WinAPI behavior is provided by function InterlockedExchangeXor.
-}
-Function InterlockedXor(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedXor(var A: Int8; B: Int8): Int8; overload; register; assembler;
 
-Function InterlockedXor(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedXor(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedXor(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedXor(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedXor8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedXor16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedXor32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedXor64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedXorPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedXorBool(A: Pointer; B: Boolean): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedXor(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedXor(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedXor(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedXor(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedXor(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedXor(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedXor(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedXor(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedXor(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedXor(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedXor(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedXor(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedXor(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedXor(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked exchange
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchange
 
-    Sets A to a value of B and returns original value of A.
-}
-Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchange(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Sets variable (pointed to by) A to a value of B and returns original value
+    of A.
 
-Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchange(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchange(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedExchange8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchange16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchange32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchange64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangePtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeBool(A: Pointer; B: Boolean): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchange(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchange(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedExchange(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                           Interlocked exchange and add
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeAdd
 
-    Sets A to a sum of A and B and returns original value of A.
-}
-Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeAdd(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Sets variable (pointed to by) A to a sum of A and B, stores the result back
+    in A and returns original value of A.
 
-Function InterlockedExchangeAdd(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeAdd(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeAdd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeAdd(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedExchangeAdd8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchangeAdd16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchangeAdd32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeAdd64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeAddPtr(A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAddPtr(A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAdd(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeAdd(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAdd(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeAdd(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAdd(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeAdd(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAdd(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeAdd(var A: Pointer; B: PtrInt): Pointer; overload; register; assembler;
-Function InterlockedExchangeAdd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeAdd(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAdd(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                        Interlocked exchange and subtract
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeSub
 
-    Subtracts B from A and returns original value of A.
-}
-Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeSub(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Subtracts B from variable (pointed to by) A, stores the result back in A
+    and returns original value of A.
+    
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeSub(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeSub(var A: Int16; B: Int16): Int16; overload; register; assembler;
+Function InterlockedExchangeSub8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchangeSub16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchangeSub32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeSub64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeSubPtr(A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSubPtr(A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeSub(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeSub(var A: Int32; B: Int32): Int32; overload; register; assembler;
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSub(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeSub(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSub(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeSub(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSub(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeSub(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSub(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeSub(var A: Pointer; B: PtrInt): Pointer; overload; register; assembler;
-Function InterlockedExchangeSub(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeSub(var A: Pointer; B: PtrInt): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeSub(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                        Interlocked exchange and negation
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeNeg
 
-    Negates (changes sign) of I and returns its original value.
+    Negates (changes sign) of variable (pointed to by) I and returns its
+    original value.
 
-    Note that unsigned integers are treated as signed. For example UInt8(255)
-    is seen as Int8(-1), and its negative is therefore UInt8(1).
-}
-Function InterlockedExchangeNeg(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeNeg(var I: Int8): Int8; overload; register; assembler;
+    Note that unsigned integers are treated as signed integers with the same
+    bit pattern. For example UInt8(255) is seen as Int8(-1), and its negative
+    is therefore UInt8(1).
+    
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeNeg(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeNeg(var I: Int16): Int16; overload; register; assembler;
+Function InterlockedExchangeNeg8(I: Pointer): UInt8; register; assembler;
+Function InterlockedExchangeNeg16(I: Pointer): UInt16; register; assembler;
+Function InterlockedExchangeNeg32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeNeg64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeNegPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeNeg(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeNeg(var I: Int32): Int32; overload; register; assembler;
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNeg(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNeg(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeNeg(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNeg(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeNeg(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNeg(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeNeg(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeNeg(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeNeg(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNeg(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeNeg(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeNeg(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical not
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeNot
 
-    Performs logical NOT (flips all bits) of I and returns its original value.
-}
-Function InterlockedExchangeNot(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeNot(var I: Int8): Int8; overload; register; assembler;
+    Performs logical NOT (flips all bits) of variable (pointed to by) I and
+    returns its original value.
 
-Function InterlockedExchangeNot(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeNot(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeNot(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeNot(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedExchangeNot8(I: Pointer): UInt8; register; assembler;
+Function InterlockedExchangeNot16(I: Pointer): UInt16; register; assembler;
+Function InterlockedExchangeNot32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeNot64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeNotPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNotBool(I: Pointer): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNot(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNot(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeNot(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNot(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeNot(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNot(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeNot(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeNot(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeNot(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeNot(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeNot(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeNot(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeNot(var I: Boolean): Boolean; overload; register; assembler;
+Function InterlockedExchangeNot(var I: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical and
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeAnd
 
-    Performs logical AND of A and B and returns original value of A.
-}
-Function InterlockedExchangeAnd(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeAnd(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Performs logical AND of variable (pointed to by) A with B, stores the
+    result back in A and returns original value of A.
 
-Function InterlockedExchangeAnd(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeAnd(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeAnd(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeAnd(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedExchangeAnd8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchangeAnd16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchangeAnd32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeAnd64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeAndPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAndBool(A: Pointer; B: Boolean): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeAnd(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAnd(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeAnd(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAnd(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeAnd(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAnd(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical or
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeOr
 
-    Performs logical OR of A and B and returns original value of A.
-}
-Function InterlockedExchangeOr(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeOr(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Performs logical OR of variable (pointed to by) A with B, stores the
+    result back in A and returns original value of A.
 
-Function InterlockedExchangeOr(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeOr(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeOr(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeOr(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedExchangeOr8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchangeOr16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchangeOr32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeOr64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeOrPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeOrBool(A: Pointer; B: Boolean): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeOr(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeOr(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeOr(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeOr(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeOr(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeOr(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked exchange and logical xor
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedExchangeXor
 
-    Performs logical XOR of A and B and returns original value of A.
-}
-Function InterlockedExchangeXor(var A: UInt8; B: UInt8): UInt8; overload; register; assembler;
-Function InterlockedExchangeXor(var A: Int8; B: Int8): Int8; overload; register; assembler;
+    Performs logical XOR of variable (pointed to by) A with B, stores the
+    result back in A and returns original value of A.
 
-Function InterlockedExchangeXor(var A: UInt16; B: UInt16): UInt16; overload; register; assembler;
-Function InterlockedExchangeXor(var A: Int16; B: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedExchangeXor(var A: UInt32; B: UInt32): UInt32; overload; register; assembler;
-Function InterlockedExchangeXor(var A: Int32; B: Int32): Int32; overload; register; assembler;
+Function InterlockedExchangeXor8(A: Pointer; B: UInt8): UInt8; register; assembler;
+Function InterlockedExchangeXor16(A: Pointer; B: UInt16): UInt16; register; assembler;
+Function InterlockedExchangeXor32(A: Pointer; B: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedExchangeXor64(A: Pointer; B: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedExchangeXorPtr(A: Pointer; B: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeXorBool(A: Pointer; B: Boolean): Boolean; register; assembler;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeXor(var A: UInt8; B: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeXor(var A: Int8; B: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeXor(var A: UInt16; B: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeXor(var A: Int16; B: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedExchangeXor(var A: UInt32; B: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeXor(var A: Int32; B: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64; overload; register; assembler;
-Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64; overload; register; assembler;
+Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer; overload; register; assembler;
+Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean; overload; register; assembler;
+Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                         Interlocked compare and exchange                         
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedCompareExchange
 
-    Compares value of Destination with Comparand. When they are equal, the
-    Destination is set to a value passed in Exchange. If they do not match,
-    then nothing is done.
+    Compares value of variable (pointed to by) Destination with Comparand.
+    When they are equal, the Destination is set to a value passed in Exchange.
+    If they do not match, then nothing is done.
     Whether the exchange took place or not is indicated by value returned in
-    Exchanged (True = exchange was performed).
+    Exchanged (True - exchange was performed, False - nothing was done).
     Returns original value of Destination.
 
     WARNING - 128bit variant requires the value Destination to be located in
               memory at 128bit-aligned address, otherwise it will fail with an
               exception.
-}
-Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8; out Exchanged: Boolean): Int8; overload; register; assembler;
 
-Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16; out Exchanged: Boolean): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32; out Exchanged: Boolean): Int32; overload; register; assembler;
-
+Function InterlockedCompareExchange8(Destination: Pointer; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8; overload; register; assembler;
+Function InterlockedCompareExchange16(Destination: Pointer; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16; overload; register; assembler;
+Function InterlockedCompareExchange32(Destination: Pointer; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32; overload; register; assembler;
 {$IFDEF IncludeVal64}
-Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64; overload; register; assembler;
+Function InterlockedCompareExchange64(Destination: Pointer; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64; overload; register; assembler;
 {$ENDIF}
-
 {$IFDEF IncludeVal128}
-Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128; overload; register; assembler;
+Function InterlockedCompareExchange128(Destination: Pointer; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128; overload; register; assembler;
 {$ENDIF}
-
-Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer; overload; register; assembler;
-
-Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean; overload; register; assembler;
+Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchangeBool(Destination: Pointer; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 //------------------------------------------------------------------------------
-{
+
+Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8; out Exchanged: Boolean): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16; out Exchanged: Boolean): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32; out Exchanged: Boolean): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{$IFDEF IncludeVal64}
+Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+{$ENDIF}
+
+{$IFDEF IncludeVal128}
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128; overload;{$IFDEF CanInline} inline;{$ENDIF}
+{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{-------------------------------------------------------------------------------
+
   InterlockedCompareExchange
 
-    Compares value of Destination with Comparand. When they are equal, the
-    Destination is set to a value passed in Exchange. If they do not match,
-    then nothing is done.
+    Compares value of variable (pointed to by) Destination with Comparand.
+    When they are equal, the Destination is set to a value passed in Exchange.
+    If they do not match, then nothing is done.
     Returns original value of Destination.
 
     WARNING - 128bit variant requires the value Destination to be located in
               memory at 128bit-aligned address, otherwise it will fail with an
               exception.
-}
-Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8): Int8; overload; register; assembler;
 
-Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16): UInt16; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32): UInt32; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32): Int32; overload; register; assembler;
+Function InterlockedCompareExchange8(Destination: Pointer; Exchange,Comparand: UInt8): UInt8; overload; register; assembler;
+Function InterlockedCompareExchange16(Destination: Pointer; Exchange,Comparand: UInt16): UInt16; overload; register; assembler;
+Function InterlockedCompareExchange32(Destination: Pointer; Exchange,Comparand: UInt32): UInt32; overload; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedCompareExchange64(Destination: Pointer; Exchange,Comparand: UInt64): UInt64; overload; register; assembler;
+{$ENDIF}
+{$IFDEF IncludeVal128}
+Function InterlockedCompareExchange128(Destination: Pointer; Exchange,Comparand: UInt128): UInt128; overload; register; assembler;
+{$ENDIF}
+Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchangeBool(Destination: Pointer; Exchange,Comparand: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64; overload; register; assembler;
-Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64; overload; register; assembler;
+Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
 {$IFDEF IncludeVal128}
-Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128; overload; register; assembler;
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer): Pointer; overload; register; assembler;
+Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean): Boolean; overload; register; assembler;
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                               Interlocked bit test
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedBitTest
 
     Returns value of bit (True = 1/set, False = 0/clear) selected by a parameter
-    Bit in variable I.
-}
-Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTest(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+    Bit in variable (pointed to by) I.
 
-Function InterlockedBitTest(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTest(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedBitTest(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTest(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTest8(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTest16(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTest32(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedBitTest64(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$ENDIF}
+Function InterlockedBitTestPtr(I: Pointer; Bit: Integer): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTest(var I: Int8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTest(var I: UInt16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTest(var I: Int16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTest(var I: UInt32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTest(var I: Int32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTest(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTest(var I: Int64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                           Interlocked bit test and set
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedBitTestAndSet
 
-    Sets a bit (changes it to 1) selected by a parameter Bit in variable I and
-    returns original value of this bit.
-}
-Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndSet(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+    Sets a bit (changes it to 1) selected by a parameter Bit in variable
+    (pointed to by) I and returns original value of this bit.
 
-Function InterlockedBitTestAndSet(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndSet(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedBitTestAndSet(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndSet(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndSet8(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndSet16(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndSet32(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedBitTestAndSet64(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$ENDIF}
+Function InterlockedBitTestAndSetPtr(I: Pointer; Bit: Integer): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndSet(var I: Int8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndSet(var I: UInt16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndSet(var I: Int16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndSet(var I: UInt32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndSet(var I: Int32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedBitTestAndSet(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndSet(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndSet(var I: UInt64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndSet(var I: Int64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                          Interlocked bit test and reset
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedBitTestAndReset
 
     Resets/clears a bit (changes it to 0) selected by a parameter Bit in
-    variable I and returns original value of this bit.
-}
-Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+    variable (pointed to by) I and returns original value of this bit.
 
-Function InterlockedBitTestAndReset(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset8(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndReset16(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndReset32(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedBitTestAndReset64(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$ENDIF}
+Function InterlockedBitTestAndResetPtr(I: Pointer; Bit: Integer): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndReset(var I: UInt16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                       Interlocked bit test and complement
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedBitTestAndComplement
 
     Complements a bit (swiches its value - if it was 0, it will become 1 and
-    vice-versa) selected by a parameter Bit in variable I and returns original
-    value of this bit.
-}
-Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean; overload; register; assembler;
+    vice-versa) selected by a parameter Bit in variable (pointed to by) I and
+    returns original value of this bit.
 
-Function InterlockedBitTestAndComplement(var I: UInt16; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement8(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndComplement16(I: Pointer; Bit: Integer): Boolean; register; assembler;
+Function InterlockedBitTestAndComplement32(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedBitTestAndComplement64(I: Pointer; Bit: Integer): Boolean; register; assembler;
+{$ENDIF}
+Function InterlockedBitTestAndComplementPtr(I: Pointer; Bit: Integer): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndComplement(var I: UInt16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean; overload; register; assembler;
-Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean; overload; register; assembler;
+Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                                 Interlocked load
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedLoad
 
-    Atomically obtains value of I and returns it.
-}
-Function InterlockedLoad(var I: UInt8): UInt8; overload; register; assembler;
-Function InterlockedLoad(var I: Int8): Int8; overload; register; assembler;
+    Atomically obtains value of variable (pointed to by) I and returns it.
 
-Function InterlockedLoad(var I: UInt16): UInt16; overload; register; assembler;
-Function InterlockedLoad(var I: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedLoad(var I: UInt32): UInt32; overload; register; assembler;
-Function InterlockedLoad(var I: Int32): Int32; overload; register; assembler;
+Function InterlockedLoad8(I: Pointer): UInt8; register; assembler;
+Function InterlockedLoad16(I: Pointer): UInt16; register; assembler;
+Function InterlockedLoad32(I: Pointer): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedLoad64(I: Pointer): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedLoadPtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedLoadBool(I: Pointer): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedLoad(var I: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedLoad(var I: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedLoad(var I: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedLoad(var I: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedLoad(var I: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedLoad(var I: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedLoad(var I: UInt64): UInt64; overload; register; assembler;
-Function InterlockedLoad(var I: Int64): Int64; overload; register; assembler;
+Function InterlockedLoad(var I: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedLoad(var I: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedLoad(var I: Pointer): Pointer; overload; register; assembler;
+Function InterlockedLoad(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedLoad(var I: Boolean): Boolean; overload; register; assembler;
+Function InterlockedLoad(var I: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
                                Interlocked store                                                               
 --------------------------------------------------------------------------------
 ===============================================================================}
-{
+{-------------------------------------------------------------------------------
+
   InterlockedStore
 
-    Sets variable I to a value passed in parameter NewValue and returns
-    original value of I.
-}
-Function InterlockedStore(var I: UInt8; NewValue: UInt8): UInt8; overload; register; assembler;
-Function InterlockedStore(var I: Int8; NewValue: Int8): Int8; overload; register; assembler;
+    Sets variable (pointed to by) I to a value passed in parameter NewValue
+    and returns original value of I.
 
-Function InterlockedStore(var I: UInt16; NewValue: UInt16): UInt16; overload; register; assembler;
-Function InterlockedStore(var I: Int16; NewValue: Int16): Int16; overload; register; assembler;
+-------------------------------------------------------------------------------}
 
-Function InterlockedStore(var I: UInt32; NewValue: UInt32): UInt32; overload; register; assembler;
-Function InterlockedStore(var I: Int32; NewValue: Int32): Int32; overload; register; assembler;
+Function InterlockedStore8(I: Pointer; NewValue: UInt8): UInt8; register; assembler;
+Function InterlockedStore16(I: Pointer; NewValue: UInt16): UInt16; register; assembler;
+Function InterlockedStore32(I: Pointer; NewValue: UInt32): UInt32; register; assembler;
+{$IFDEF IncludeVal64}
+Function InterlockedStore64(I: Pointer; NewValue: UInt64): UInt64; register; assembler;
+{$ENDIF}
+Function InterlockedStorePtr(I: Pointer; NewValue: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedStoreBool(I: Pointer; NewValue: Boolean): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedStore(var I: UInt8; NewValue: UInt8): UInt8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedStore(var I: Int8; NewValue: Int8): Int8; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedStore(var I: UInt16; NewValue: UInt16): UInt16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedStore(var I: Int16; NewValue: Int16): Int16; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedStore(var I: UInt32; NewValue: UInt32): UInt32; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedStore(var I: Int32; NewValue: Int32): Int32; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {$IFDEF IncludeVal64}
-Function InterlockedStore(var I: UInt64; NewValue: UInt64): UInt64; overload; register; assembler;
-Function InterlockedStore(var I: Int64; NewValue: Int64): Int64; overload; register; assembler;
+Function InterlockedStore(var I: UInt64; NewValue: UInt64): UInt64; overload;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedStore(var I: Int64; NewValue: Int64): Int64; overload;{$IFDEF CanInline} inline;{$ENDIF}
 {$ENDIF}
 
-Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer; overload; register; assembler;
+Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
-Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean; overload; register; assembler;
+Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 implementation
 
@@ -975,147 +1355,147 @@ uses
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedIncrement(var I: UInt8): UInt8;
+Function InterlockedIncrement8(I: Pointer): UInt8;
 asm
           MOV   DL, 1
     LOCK  XADD  byte ptr [I], DL
           MOV   AL, DL
           INC   AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedIncrement16(I: Pointer): UInt16;
+asm
+          MOV   DX, 1
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          INC   AX
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedIncrement32(I: Pointer): UInt32;
+asm
+          MOV   EDX, 1
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          INC   EAX
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedIncrement64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+          MOV   RDX, 1
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          INC   RAX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          ADD   EBX, 1
+          ADC   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedIncrementPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedIncrement64(I));
+{$ELSE}
+Result := Pointer(InterlockedIncrement32(I));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedIncrement(var I: UInt8): UInt8;
+begin
+Result := InterlockedIncrement8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int8): Int8;
-asm
-          MOV   DL, 1
-    LOCK  XADD  byte ptr [I], DL
-          MOV   AL, DL
-          INC   AL
+begin
+Result := Int8(InterlockedIncrement8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt16): UInt16;
-asm
-          MOV   DX, 1
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
-          INC   AX
+begin
+Result := InterlockedIncrement16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int16): Int16;
-asm
-          MOV   DX, 1
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
-          INC   AX
+begin
+Result := Int16(InterlockedIncrement16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: UInt32): UInt32;
-asm
-          MOV   EDX, 1
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          INC   EAX
+begin
+Result := InterlockedIncrement32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int32): Int32;
-asm
-          MOV   EDX, 1
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          INC   EAX
+begin
+Result := Int32(InterlockedIncrement32(@I));
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 {$IFDEF IncludeVal64}
 
 Function InterlockedIncrement(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, 1
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          INC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          ADD   EBX, 1
-          ADC   ECX, 0
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedIncrement64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, 1
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          INC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          ADD   EBX, 1
-          ADC   ECX, 0
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedIncrement64(@I));
 end;
 
 {$ENDIF}
@@ -1123,22 +1503,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedIncrement(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, 1
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          INC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   EDX, 1
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          INC   EAX
-          
-{$ENDIF}
+begin
+Result := InterlockedIncrementPtr(@I);
 end;
 
 
@@ -1148,61 +1514,131 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedDecrement(var I: UInt8): UInt8;
+Function InterlockedDecrement8(I: Pointer): UInt8;
 asm
           MOV   DL, byte(-1)
     LOCK  XADD  byte ptr [I], DL
           MOV   AL, DL
           DEC   AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrement16(I: Pointer): UInt16;
+asm
+          MOV   DX, word(-1)
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+          DEC   AX
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrement32(I: Pointer): UInt32;
+asm
+          MOV   EDX, dword(-1)
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+          DEC   EAX
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedDecrement64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+          MOV   RDX, qword(-1)
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+          DEC   RAX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, 1
+          SBB   ECX, 0
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrementPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedDecrement64(I));
+{$ELSE}
+Result := Pointer(InterlockedDecrement32(I));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedDecrement(var I: UInt8): UInt8;
+begin
+Result := InterlockedDecrement8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int8): Int8;
-asm
-          MOV   DL, byte(-1)
-    LOCK  XADD  byte ptr [I], DL
-          MOV   AL, DL
-          DEC   AL
+begin
+Result := Int8(InterlockedDecrement8(@I));
 end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt16): UInt16;
-asm
-          MOV   DX, word(-1)
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
-          DEC   AX
+begin
+Result := InterlockedDecrement16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int16): Int16;
-asm
-          MOV   DX, word(-1)
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
-          DEC   AX
+begin
+Result := Int16(InterlockedDecrement16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: UInt32): UInt32;
-asm
-          MOV   EDX, dword(-1)
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          DEC   EAX
+begin
+Result := InterlockedDecrement32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int32): Int32;
-asm
-          MOV   EDX, dword(-1)
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          DEC   EAX
+begin
+Result := Int32(InterlockedDecrement32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1210,85 +1646,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedDecrement(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, qword(-1)
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          DEC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, 1
-          SBB   ECX, 0
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedDecrement64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, qword(-1)
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          DEC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, 1
-          SBB   ECX, 0
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedDecrement64(@I));
 end;
 
 {$ENDIF}
@@ -1296,22 +1662,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedDecrement(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RDX, qword(-1)
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-          DEC   RAX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   EDX, dword(-1)
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-          DEC   EAX
-          
-{$ENDIF}
+begin
+Result := InterlockedDecrementPtr(@I);
 end;
 
 
@@ -1321,7 +1673,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedAdd8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -1337,106 +1689,155 @@ asm
           ADD   AL, CL
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedAdd16(A: Pointer; B: UInt16): UInt16;
+asm
+{$IFDEF x64}
+
+          MOV   AX, B
+    LOCK  XADD  word ptr [A], AX
+          ADD   AX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   CX, DX
+    LOCK  XADD  word ptr [EAX], DX
+          MOV   AX, DX
+          ADD   AX, CX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedAdd32(A: Pointer; B: UInt32): UInt32;
+asm
+{$IFDEF x64}
+
+          MOV   EAX, B
+    LOCK  XADD  dword ptr [A], EAX
+          ADD   EAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EDX
+    LOCK  XADD  dword ptr [EAX], EDX
+          MOV   EAX, EDX
+          ADD   EAX, ECX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedAdd64(A: Pointer; B: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+          MOV   RAX, B
+    LOCK  XADD  qword ptr [A], RAX
+          ADD   RAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EBX, dword ptr [B]
+          MOV   ECX, dword ptr [B + 4]
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          ADD   EBX, EAX
+          ADC   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedAddPtr(A: Pointer; B: PtrInt): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedAdd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedAdd32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAddPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedAdd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedAdd32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedAdd(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedAdd8(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-          MOV   AL, B
-    LOCK  XADD  byte ptr [A], AL
-          ADD   AL, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CL, DL
-    LOCK  XADD  byte ptr [EAX], DL
-          MOV   AL, DL
-          ADD   AL, CL
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedAdd8(@A,UInt8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt16; B: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, B
-    LOCK  XADD  word ptr [A], AX
-          ADD   AX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CX, DX
-    LOCK  XADD  word ptr [EAX], DX
-          MOV   AX, DX
-          ADD   AX, CX
-
-{$ENDIF}
+begin
+Result := InterlockedAdd16(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, B
-    LOCK  XADD  word ptr [A], AX
-          ADD   AX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CX, DX
-    LOCK  XADD  word ptr [EAX], DX
-          MOV   AX, DX
-          ADD   AX, CX
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedAdd16(@A,UInt16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: UInt32; B: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, B
-    LOCK  XADD  dword ptr [A], EAX
-          ADD   EAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-    LOCK  XADD  dword ptr [EAX], EDX
-          MOV   EAX, EDX
-          ADD   EAX, ECX
-
-{$ENDIF}
+begin
+Result := InterlockedAdd32(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, B
-    LOCK  XADD  dword ptr [A], EAX
-          ADD   EAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-    LOCK  XADD  dword ptr [EAX], EDX
-          MOV   EAX, EDX
-          ADD   EAX, ECX
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedAdd32(@A,UInt32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1444,83 +1845,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedAdd(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-    LOCK  XADD  qword ptr [A], RAX
-          ADD   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          ADD   EBX, EAX
-          ADC   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedAdd64(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Int64; B: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-    LOCK  XADD  qword ptr [A], RAX
-          ADD   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          ADD   EBX, EAX
-          ADC   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedAdd64(@A,UInt64(B)));
 end;
 
 {$ENDIF}
@@ -1528,42 +1861,16 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Pointer; B: PtrInt): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-    LOCK  XADD  qword ptr [A], RAX
-          ADD   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-    LOCK  XADD  dword ptr [EAX], EDX
-          MOV   EAX, EDX
-          ADD   EAX, ECX
-          
-{$ENDIF}
+begin
+Result := InterlockedAddPtr(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-    LOCK  XADD  qword ptr [A], RAX
-          ADD   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-    LOCK  XADD  dword ptr [EAX], EDX
-          MOV   EAX, EDX
-          ADD   EAX, ECX
-          
-{$ENDIF}
-end;
+begin
+Result := InterlockedAddPtr(@A,B);
+end;  
 
 
 {===============================================================================
@@ -1572,7 +1879,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedSub(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedSub8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -1590,116 +1897,160 @@ asm
           SUB   AL, DL
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedSub16(A: Pointer; B: UInt16): UInt16;
+asm
+{$IFDEF x64}
+
+          MOV   AX, B
+          NEG   AX
+    LOCK  XADD  word ptr [A], AX
+          SUB   AX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   CX, DX
+          NEG   CX
+    LOCK  XADD  word ptr [EAX], CX
+          MOV   AX, CX
+          SUB   AX, DX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedSub32(A: Pointer; B: UInt32): UInt32;
+asm
+{$IFDEF x64}
+
+          MOV   EAX, B
+          NEG   EAX
+    LOCK  XADD  dword ptr [A], EAX
+          SUB   EAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EDX
+          NEG   ECX
+    LOCK  XADD  dword ptr [EAX], ECX
+          MOV   EAX, ECX
+          SUB   EAX, EDX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedSub64(A: Pointer; B: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+          MOV   RAX, B
+          NEG   RAX
+    LOCK  XADD  qword ptr [A], RAX
+          SUB   RAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, dword ptr [B]
+          SBB   ECX, dword ptr [B + 4]
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedSubPtr(A: Pointer; B: PtrInt): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedSub64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedSub32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedSubPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedSub64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedSub32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedSub(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedSub8(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-          MOV   AL, B
-          NEG   AL
-    LOCK  XADD  byte ptr [A], AL
-          SUB   AL, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CL, DL
-          NEG   CL
-    LOCK  XADD  byte ptr [EAX], CL
-          MOV   AL, CL
-          SUB   AL, DL
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedSub8(@A,UInt8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt16; B: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, B
-          NEG   AX
-    LOCK  XADD  word ptr [A], AX
-          SUB   AX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CX, DX
-          NEG   CX
-    LOCK  XADD  word ptr [EAX], CX
-          MOV   AX, CX
-          SUB   AX, DX
-
-{$ENDIF}
+begin
+Result := InterlockedSub16(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, B
-          NEG   AX
-    LOCK  XADD  word ptr [A], AX
-          SUB   AX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   CX, DX
-          NEG   CX
-    LOCK  XADD  word ptr [EAX], CX
-          MOV   AX, CX
-          SUB   AX, DX
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedSub16(@A,UInt16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: UInt32; B: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, B
-          NEG   EAX
-    LOCK  XADD  dword ptr [A], EAX
-          SUB   EAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-          NEG   ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-          MOV   EAX, ECX
-          SUB   EAX, EDX
-
-{$ENDIF}
+begin
+Result := InterlockedSub32(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, B
-          NEG   EAX
-    LOCK  XADD  dword ptr [A], EAX
-          SUB   EAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-          NEG   ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-          MOV   EAX, ECX
-          SUB   EAX, EDX
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedSub32(@A,UInt32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1707,85 +2058,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedSub(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-          NEG   RAX
-    LOCK  XADD  qword ptr [A], RAX
-          SUB   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, dword ptr [B]
-          SBB   ECX, dword ptr [B + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedSub64(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Int64; B: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-          NEG   RAX
-    LOCK  XADD  qword ptr [A], RAX
-          SUB   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, dword ptr [B]
-          SBB   ECX, dword ptr [B + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedSub64(@A,UInt64(B)));
 end;
 
 {$ENDIF}
@@ -1793,47 +2074,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Pointer; B: PtrInt): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-          NEG   RAX
-    LOCK  XADD  qword ptr [A], RAX
-          SUB   RAX, B
-
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-          NEG   ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-          MOV   EAX, ECX
-          SUB   EAX, EDX
-          
-{$ENDIF}
+begin
+Result := InterlockedSubPtr(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedSub(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, B
-          NEG   RAX
-    LOCK  XADD  qword ptr [A], RAX
-          SUB   RAX, B
-
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EDX
-          NEG   ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-          MOV   EAX, ECX
-          SUB   EAX, EDX
-          
-{$ENDIF}
+begin
+Result := InterlockedSubPtr(@A,B);
 end;
 
 
@@ -1843,7 +2092,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedNeg(var I: UInt8): UInt8;
+Function InterlockedNeg8(I: Pointer): UInt8;
 asm
 {$IFDEF x64}
 
@@ -1878,201 +2127,191 @@ asm
           MOV   AL, DL
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNeg16(I: Pointer): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNeg32(I: Pointer): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedNeg64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NEG   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          XOR   EBX, EBX
+          XOR   ECX, ECX
+
+          SUB   EBX, EAX
+          SBB   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNegPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedNeg64(I));
+{$ELSE}
+Result := Pointer(InterlockedNeg32(I));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedNeg(var I: UInt8): UInt8;
+begin
+Result := InterlockedNeg8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NEG   DL
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NEG   DL
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedNeg8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ENDIF}
+begin
+Result := InterlockedNeg16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedNeg16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ENDIF}
+begin
+Result := InterlockedNeg32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedNeg32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2080,101 +2319,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedNeg(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          XOR   EBX, EBX
-          XOR   ECX, ECX
-
-          SUB   EBX, EAX
-          SBB   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedNeg64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          XOR   EBX, EBX
-          XOR   ECX, ECX
-
-          SUB   EBX, EAX
-          SBB   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedNeg64(@I));
 end;
 
 {$ENDIF}
@@ -2182,41 +2335,9 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNeg(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-     @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-          
-{$ENDIF}
-end;
+begin
+Result := InterlockedNegPtr(@I);
+end;  
 
 
 {===============================================================================
@@ -2225,7 +2346,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedNot(var I: UInt8): UInt8;
+Function InterlockedNot8(I: Pointer): UInt8;
 asm
 {$IFDEF x64}
 
@@ -2260,201 +2381,232 @@ asm
           MOV   AL, DL
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNot16(I: Pointer): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+          MOV   AX, DX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNot32(I: Pointer): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EDX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedNot64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NOT   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+          MOV   RAX, RDX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          NOT   EBX
+          NOT   ECX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          MOV   EAX, EBX
+          MOV   EDX, ECX
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNotPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedNot64(I));
+{$ELSE}
+Result := Pointer(InterlockedNot32(I));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedNotBool(I: Pointer): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+          MOV   AL, DL
+
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedNot(var I: UInt8): UInt8;
+begin
+Result := InterlockedNot8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NOT   DL
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NOT   DL
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedNot8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ENDIF}
+begin
+Result := InterlockedNot16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, DX
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedNot16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ENDIF}
+begin
+Result := InterlockedNot32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedNot32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2462,101 +2614,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedNot(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          NOT   EBX
-          NOT   ECX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedNot64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          NOT   EBX
-          NOT   ECX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedNot64(@I));
 end;
 
 {$ENDIF}
@@ -2564,81 +2630,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EDX
-          
-{$ENDIF}
+begin
+Result := InterlockedNotPtr(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedNot(var I: Boolean): Boolean;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NOT   DL
-          AND   DL, 1
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NOT   DL
-          AND   DL, 1
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, DL
-
-{$ENDIF}
+begin
+Result := InterlockedNotBool(@I);
 end;
 
 
@@ -2648,7 +2648,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedAnd8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -2689,52 +2689,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedAnd(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          AND   R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-          MOV   AL, R8B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          AND   BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, BL
-          
-          POP   EBX
-          
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedAnd16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -2775,52 +2732,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedAnd(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          AND   R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-          MOV   AX, R8W
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          AND   BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, BX
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedAnd32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -2861,104 +2775,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedAnd(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          AND   R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, R8D
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          AND   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          AND   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          AND   EBX, EAX
-          AND   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedAnd(var A: Int64; B: Int64): Int64;
+Function InterlockedAnd64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -3008,52 +2829,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          AND   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          AND   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-
-          POP   EBX
-          
+Function InterlockedAndPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedAnd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedAnd32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedAndBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -3094,6 +2883,80 @@ asm
           POP   EBX
 
 {$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedAnd(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedAnd8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedAnd8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedAnd16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedAnd16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedAnd32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedAnd32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedAnd(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedAnd64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedAnd64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedAndPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedAnd(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedAndBool(@A,B);
 end;
 
 
@@ -3103,7 +2966,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedOr(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedOr8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -3144,51 +3007,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedOr(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          OR    R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-          MOV   AL, R8B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          OR    BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, BL
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedOr(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedOr16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -3229,52 +3050,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedOr(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          OR    R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-          MOV   AX, R8W
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          OR    BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, BX
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedOr(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedOr32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -3309,110 +3087,17 @@ asm
           JNZ   @TryOutStart
 
           MOV   EAX, EBX
-          
+
           POP   EBX
 
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedOr(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          OR    R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, R8D
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          OR    EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedOr(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          OR    R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          OR    EBX, EAX
-          OR    ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedOr(var A: Int64; B: Int64): Int64;
+Function InterlockedOr64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -3462,52 +3147,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedOr(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          OR    R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          OR    EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-
-          POP   EBX
-          
+Function InterlockedOrPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedOr64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedOr32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedOr(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedOrBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -3548,6 +3201,80 @@ asm
           POP   EBX
 
 {$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedOr(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedOr8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedOr8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedOr16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedOr16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedOr32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedOr32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedOr(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedOr64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedOr64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedOrPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedOr(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedOrBool(@A,B);
 end;
 
 
@@ -3557,7 +3284,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedXor(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedXor8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -3566,7 +3293,7 @@ asm
           MOV   AL, byte ptr [A]
 
           MOV   R8B, AL
-          XOR   R8B, B
+          Xor    R8B, B
 
     LOCK  CMPXCHG byte ptr [A], R8B
 
@@ -3585,7 +3312,7 @@ asm
           MOV   AL, byte ptr [ECX]
 
           MOV   BL, AL
-          XOR   BL, DL
+          Xor    BL, DL
 
     LOCK  CMPXCHG byte ptr [ECX], BL
 
@@ -3598,52 +3325,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedXor(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          XOR   R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-          MOV   AL, R8B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          XOR   BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          MOV   AL, BL
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedXor(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedXor16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -3684,95 +3368,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedXor(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          XOR   R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-          MOV   AX, R8W
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          XOR   BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          MOV   AX, BX
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedXor(var A: UInt32; B: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          XOR   R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, R8D
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          XOR   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedXor(var A: Int32; B: Int32): Int32;
+Function InterlockedXor32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -3813,61 +3411,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedXor(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          XOR   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          XOR   EBX, EAX
-          XOR   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-          MOV   EDX, ECX
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedXor(var A: Int64; B: Int64): Int64;
+Function InterlockedXor64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -3917,52 +3465,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedXor(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          XOR   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-          MOV   RAX, R8
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          XOR   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          MOV   EAX, EBX
-
-          POP   EBX
-          
+Function InterlockedXorPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedXor64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedXor32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedXor(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedXorBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -4005,6 +3521,80 @@ asm
 {$ENDIF}
 end;
 
+//==============================================================================
+
+Function InterlockedXor(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedXor8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedXor8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedXor16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedXor16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedXor32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedXor32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedXor(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedXor64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedXor64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedXorPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedXor(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedXorBool(@A,B);
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -4012,57 +3602,33 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchange8(A: Pointer; B: UInt8): UInt8;
 asm
     LOCK  XCHG  byte ptr [A], B
           MOV   AL, B
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchange(var A: Int8; B: Int8): Int8;
-asm
-    LOCK  XCHG  byte ptr [A], B
-          MOV   AL, B
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedExchange16(A: Pointer; B: UInt16): UInt16;
 asm
     LOCK  XCHG  word ptr [A], B
           MOV   AX, B
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchange(var A: Int16; B: Int16): Int16;
-asm
-    LOCK  XCHG  word ptr [A], B
-          MOV   AX, B
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedExchange32(A: Pointer; B: UInt32): UInt32;
 asm
     LOCK  XCHG  dword ptr [A], B
           MOV   EAX, B
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchange(var A: Int32; B: Int32): Int32;
-asm
-    LOCK  XCHG  dword ptr [A], B
-          MOV   EAX, B
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64;
+Function InterlockedExchange64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -4094,38 +3660,82 @@ asm
 {$ENDIF}
 end;
 
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangePtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchange64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchange32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeBool(A: Pointer; B: Boolean): Boolean;
+begin
+Result := Boolean(InterlockedExchange8(A,UInt8(B)));
+end;
+
+//==============================================================================
+
+Function InterlockedExchange(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchange8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedExchange8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedExchange16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedExchange16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedExchange32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchange(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedExchange32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchange(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedExchange64(@A,B);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchange(var A: Int64; B: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    LOCK  XCHG  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedExchange64(@A,UInt64(B)));
 end;
 
 {$ENDIF}
@@ -4133,26 +3743,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchange(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    LOCK  XCHG  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-    LOCK  XCHG  dword ptr [A], B
-          MOV   EAX, B
-
-{$ENDIF}
+begin
+Result := InterlockedExchangePtr(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchange(var A: Boolean; B: Boolean): Boolean;
-asm
-    LOCK  XCHG  byte ptr [A], B
-          MOV   AL, B
+begin
+Result := InterlockedExchangeBool(@A,B);
 end;
 
 
@@ -4162,50 +3761,131 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchangeAdd8(A: Pointer; B: UInt8): UInt8;
 asm
     LOCK  XADD  byte ptr [A], B
           MOV   AL, B
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeAdd16(A: Pointer; B: UInt16): UInt16;
+asm
+    LOCK  XADD  word ptr [A], B
+          MOV   AX, B
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeAdd32(A: Pointer; B: UInt32): UInt32;
+asm
+    LOCK  XADD  dword ptr [A], B
+          MOV   EAX, B
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeAdd64(A: Pointer; B: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+    LOCK  XADD  qword ptr [A], B
+          MOV   RAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EBX, dword ptr [B]
+          MOV   ECX, dword ptr [B + 4]
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          ADD   EBX, EAX
+          ADC   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeAddPtr(A: Pointer; B: PtrInt): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeAdd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeAdd32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAddPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeAdd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeAdd32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeAdd(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchangeAdd8(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int8; B: Int8): Int8;
-asm
-    LOCK  XADD  byte ptr [A], B
-          MOV   AL, B
+begin
+Result := Int8(InterlockedExchangeAdd8(@A,UInt8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: UInt16; B: UInt16): UInt16;
-asm
-    LOCK  XADD  word ptr [A], B
-          MOV   AX, B
+begin
+Result := InterlockedExchangeAdd16(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int16; B: Int16): Int16;
-asm
-    LOCK  XADD  word ptr [A], B
-          MOV   AX, B
+begin
+Result := Int16(InterlockedExchangeAdd16(@A,UInt16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: UInt32; B: UInt32): UInt32;
-asm
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
+begin
+Result := InterlockedExchangeAdd32(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int32; B: Int32): Int32;
-asm
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
+begin
+Result := Int32(InterlockedExchangeAdd32(@A,UInt32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4213,75 +3893,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedExchangeAdd(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          ADD   EBX, EAX
-          ADC   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeAdd64(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Int64; B: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          ADD   EBX, EAX
-          ADC   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedExchangeAdd64(@A,UInt64(B)));
 end;
 
 {$ENDIF}
@@ -4289,35 +3909,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Pointer; B: PtrInt): Pointer;
-asm
-{$IFDEF x64}
-
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeAddPtr(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeAdd(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeAddPtr(@A,B);
 end;
 
 
@@ -4327,56 +3927,135 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchangeSub8(A: Pointer; B: UInt8): UInt8;
 asm
           NEG   B
     LOCK  XADD  byte ptr [A], B
           MOV   AL, B
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeSub16(A: Pointer; B: UInt16): UInt16;
+asm
+          NEG   B
+    LOCK  XADD  word ptr [A], B
+          MOV   AX, B
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeSub32(A: Pointer; B: UInt32): UInt32;
+asm
+          NEG   B
+    LOCK  XADD  dword ptr [A], B
+          MOV   EAX, B
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeSub64(A: Pointer; B: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+          NEG   B
+    LOCK  XADD  qword ptr [A], B
+          MOV   RAX, B
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          SUB   EBX, dword ptr [B]
+          SBB   ECX, dword ptr [B + 4]
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeSubPtr(A: Pointer; B: PtrInt): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeSub64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeSub32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeSubPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeSub64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeSub32(A,UInt32(B)));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeSub(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchangeSub8(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int8; B: Int8): Int8;
-asm
-          NEG   B
-    LOCK  XADD  byte ptr [A], B
-          MOV   AL, B
+begin
+Result := Int8(InterlockedExchangeSub8(@A,UInt8(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: UInt16; B: UInt16): UInt16;
-asm
-          NEG   B
-    LOCK  XADD  word ptr [A], B
-          MOV   AX, B
+begin
+Result := InterlockedExchangeSub16(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int16; B: Int16): Int16;
-asm
-          NEG   B
-    LOCK  XADD  word ptr [A], B
-          MOV   AX, B
+begin
+Result := Int16(InterlockedExchangeSub16(@A,UInt16(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: UInt32; B: UInt32): UInt32;
-asm
-          NEG   B
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
+begin
+Result := InterlockedExchangeSub32(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int32; B: Int32): Int32;
-asm
-          NEG   B
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
+begin
+Result := Int32(InterlockedExchangeSub32(@A,UInt32(B)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4384,77 +4063,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedExchangeSub(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          NEG   B
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, dword ptr [B]
-          SBB   ECX, dword ptr [B + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeSub64(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Int64; B: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          NEG   B
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          SUB   EBX, dword ptr [B]
-          SBB   ECX, dword ptr [B + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedExchangeSub64(@A,UInt64(B)));
 end;
 
 {$ENDIF}
@@ -4462,39 +4079,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Pointer; B: PtrInt): Pointer;
-asm
-{$IFDEF x64}
-
-          NEG   B
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          NEG   B
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeSubPtr(@A,B);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeSub(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          NEG   B
-    LOCK  XADD  qword ptr [A], B
-          MOV   RAX, B
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          NEG   B
-    LOCK  XADD  dword ptr [A], B
-          MOV   EAX, B
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeSubPtr(@A,B);
 end;
 
 
@@ -4504,7 +4097,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeNeg(var I: UInt8): UInt8;
+Function InterlockedExchangeNeg8(I: Pointer): UInt8;
 asm
 {$IFDEF x64}
 
@@ -4535,181 +4128,178 @@ asm
           JNZ   @TryOutStart
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNeg16(I: Pointer): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NEG   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNeg32(I: Pointer): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NEG   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeNeg64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NEG   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          XOR   EBX, EBX
+          XOR   ECX, ECX
+
+          SUB   EBX, EAX
+          SBB   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNegPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeNeg64(I));
+{$ELSE}
+Result := Pointer(InterlockedExchangeNeg32(I));
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeNeg(var I: UInt8): UInt8;
+begin
+Result := InterlockedExchangeNeg8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NEG   DL
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NEG   DL
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedExchangeNeg8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNeg16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NEG   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedExchangeNeg16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNeg32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedExchangeNeg32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -4717,91 +4307,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedExchangeNeg(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          XOR   EBX, EBX
-          XOR   ECX, ECX
-
-          SUB   EBX, EAX
-          SBB   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNeg64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          XOR   EBX, EBX
-          XOR   ECX, ECX
-
-          SUB   EBX, EAX
-          SBB   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedExchangeNeg64(@I));
 end;
 
 {$ENDIF}
@@ -4809,36 +4323,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNeg(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NEG   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NEG   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNegPtr(@I);
 end;
 
 
@@ -4848,7 +4334,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeNot(var I: UInt8): UInt8;
+Function InterlockedExchangeNot8(I: Pointer): UInt8;
 asm
 {$IFDEF x64}
 
@@ -4879,181 +4365,215 @@ asm
           JNZ   @TryOutStart
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNot16(I: Pointer): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+          MOV   DX, AX
+          NOT   DX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNot32(I: Pointer): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+          MOV   EDX, EAX
+          NOT   EDX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeNot64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+          MOV   RDX, RAX
+          NOT   RDX
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          NOT   EBX
+          NOT   ECX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNotPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeNot64(I));
+{$ELSE}
+Result := Pointer(InterlockedExchangeNot32(I));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedExchangeNotBool(I: Pointer): Boolean;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   DL, AL
+          NOT   DL
+          AND   DL, 1
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeNot(var I: UInt8): UInt8;
+begin
+Result := InterlockedExchangeNot8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NOT   DL
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NOT   DL
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedExchangeNot8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNot16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [I], DX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   DX, AX
-          NOT   DX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedExchangeNot16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNot32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [I], EDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedExchangeNot32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -5061,91 +4581,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedExchangeNot(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          NOT   EBX
-          NOT   ECX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNot64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          NOT   EBX
-          NOT   ECX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedExchangeNot64(@I));
 end;
 
 {$ENDIF}
@@ -5153,73 +4597,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-          MOV   RDX, RAX
-          NOT   RDX
-
-    LOCK  CMPXCHG qword ptr [I], RDX
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EDX, EAX
-          NOT   EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNotPtr(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedExchangeNot(var I: Boolean): Boolean;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-          MOV   DL, AL
-          NOT   DL
-          AND   DL, 1
-
-    LOCK  CMPXCHG byte ptr [I], DL
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   DL, AL
-          NOT   DL
-          AND   DL, 1
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedExchangeNotBool(@I);
 end;
 
 
@@ -5229,7 +4615,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeAnd(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchangeAnd8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -5266,48 +4652,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeAnd(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          AND   R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          AND   BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeAnd(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedExchangeAnd16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -5344,48 +4691,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeAnd(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          AND   R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          AND   BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeAnd(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedExchangeAnd32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -5422,95 +4730,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeAnd(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          AND   R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          AND   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          AND   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          AND   EBX, EAX
-          AND   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64;
+Function InterlockedExchangeAnd64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -5555,48 +4779,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          AND   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          AND   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
+Function InterlockedExchangeAndPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeAnd64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeAnd32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedExchangeAndBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -5633,6 +4829,80 @@ asm
           POP   EBX
 
 {$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeAnd(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchangeAnd8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedExchangeAnd8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedExchangeAnd16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedExchangeAnd16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedExchangeAnd32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedExchangeAnd32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeAnd(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedExchangeAnd64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedExchangeAnd64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedExchangeAndPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeAnd(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedExchangeAndBool(@A,B);
 end;
 
 
@@ -5642,7 +4912,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeOr(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchangeOr8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -5679,48 +4949,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeOr(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          OR    R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          OR    BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeOr(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedExchangeOr16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -5757,48 +4988,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeOr(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          OR    R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          OR    BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeOr(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedExchangeOr32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -5835,95 +5027,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeOr(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          OR    R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          OR    EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          OR    R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          OR    EBX, EAX
-          OR    ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64;
+Function InterlockedExchangeOr64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -5968,48 +5076,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          OR    R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          OR    EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
+Function InterlockedExchangeOrPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeOr64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeOr32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedExchangeOrBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -6046,6 +5126,80 @@ asm
           POP   EBX
 
 {$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedExchangeOr(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchangeOr8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedExchangeOr8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedExchangeOr16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedExchangeOr16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedExchangeOr32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedExchangeOr32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeOr(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedExchangeOr64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedExchangeOr64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedExchangeOrPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeOr(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedExchangeOrBool(@A,B);
 end;
 
 
@@ -6055,7 +5209,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedExchangeXor(var A: UInt8; B: UInt8): UInt8;
+Function InterlockedExchangeXor8(A: Pointer; B: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -6092,48 +5246,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeXor(var A: Int8; B: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [A]
-
-          MOV   R8B, AL
-          XOR   R8B, B
-
-    LOCK  CMPXCHG byte ptr [A], R8B
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-          MOV   BL, AL
-          XOR   BL, DL
-
-    LOCK  CMPXCHG byte ptr [ECX], BL
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeXor(var A: UInt16; B: UInt16): UInt16;
+Function InterlockedExchangeXor16(A: Pointer; B: UInt16): UInt16;
 asm
 {$IFDEF x64}
 
@@ -6170,48 +5285,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeXor(var A: Int16; B: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [A]
-
-          MOV   R8W, AX
-          XOR   R8W, B
-
-    LOCK  CMPXCHG word ptr [A], R8W
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-          MOV   BX, AX
-          XOR   BX, DX
-
-    LOCK  CMPXCHG word ptr [ECX], BX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeXor(var A: UInt32; B: UInt32): UInt32;
+Function InterlockedExchangeXor32(A: Pointer; B: UInt32): UInt32;
 asm
 {$IFDEF x64}
 
@@ -6248,95 +5324,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeXor(var A: Int32; B: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [A]
-
-          MOV   R8D, EAX
-          XOR   R8D, B
-
-    LOCK  CMPXCHG dword ptr [A], R8D
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          XOR   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          XOR   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, dword ptr [B]
-          MOV   ECX, dword ptr [B + 4]
-
-          XOR   EBX, EAX
-          XOR   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64;
+Function InterlockedExchangeXor64(A: Pointer; B: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
@@ -6381,48 +5373,20 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [A]
-
-          MOV   R8, RAX
-          XOR   R8, B
-
-    LOCK  CMPXCHG qword ptr [A], R8
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-          MOV   EBX, EAX
-          XOR   EBX, EDX
-
-    LOCK  CMPXCHG dword ptr [ECX], EBX
-
-          JNZ   @TryOutStart
-
-          POP   EBX
-
+Function InterlockedExchangeXorPtr(A: Pointer; B: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedExchangeXor64(A,UInt64(B)));
+{$ELSE}
+Result := Pointer(InterlockedExchangeXor32(A,UInt32(B)));
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean;
+Function InterlockedExchangeXorBool(A: Pointer; B: Boolean): Boolean;
 asm
 {$IFDEF x64}
 
@@ -6461,6 +5425,80 @@ asm
 {$ENDIF}
 end;
 
+//==============================================================================
+
+Function InterlockedExchangeXor(var A: UInt8; B: UInt8): UInt8;
+begin
+Result := InterlockedExchangeXor8(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Int8; B: Int8): Int8;
+begin
+Result := Int8(InterlockedExchangeXor8(@A,UInt8(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: UInt16; B: UInt16): UInt16;
+begin
+Result := InterlockedExchangeXor16(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Int16; B: Int16): Int16;
+begin
+Result := Int16(InterlockedExchangeXor16(@A,UInt16(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: UInt32; B: UInt32): UInt32;
+begin
+Result := InterlockedExchangeXor32(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Int32; B: Int32): Int32;
+begin
+Result := Int32(InterlockedExchangeXor32(@A,UInt32(B)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedExchangeXor(var A: UInt64; B: UInt64): UInt64;
+begin
+Result := InterlockedExchangeXor64(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Int64; B: Int64): Int64;
+begin
+Result := Int64(InterlockedExchangeXor64(@A,UInt64(B)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Pointer; B: Pointer): Pointer;
+begin
+Result := InterlockedExchangeXorPtr(@A,B);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedExchangeXor(var A: Boolean; B: Boolean): Boolean;
+begin
+Result := InterlockedExchangeXorBool(@A,B);
+end;
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -6468,7 +5506,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8;
+Function InterlockedCompareExchange8(Destination: Pointer; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8;
 asm
 {$IFDEF x64}
 
@@ -6490,33 +5528,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8; out Exchanged: Boolean): Int8;
-asm
-{$IFDEF x64}
-
-          MOV   AL, Comparand
-
-    LOCK  CMPXCHG byte ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          MOV   EDX, Exchanged
-          SETZ  byte ptr [EDX]
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16;
+Function InterlockedCompareExchange16(Destination: Pointer; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16;
 asm
 {$IFDEF x64}
 
@@ -6538,33 +5552,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16; out Exchanged: Boolean): Int16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, Comparand
-
-    LOCK  CMPXCHG word ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          MOV   EDX, Exchanged
-          SETZ  byte ptr [EDX]
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32;
+Function InterlockedCompareExchange32(Destination: Pointer; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32;
 asm
 {$IFDEF x64}
 
@@ -6586,72 +5576,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32; out Exchanged: Boolean): Int32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, Comparand
-
-    LOCK  CMPXCHG dword ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          MOV   EDX, Exchanged
-          SETZ  byte ptr [EDX]
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, Comparand
-
-    LOCK  CMPXCHG qword ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  EDX
-
-          MOV   EDI, EAX
-
-          MOV   EAX, dword ptr [Comparand]
-          MOV   EDX, dword ptr [Comparand + 4]
-
-          MOV   EBX, dword ptr [Exchange]
-          MOV   ECX, dword ptr [Exchange + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          POP   ECX
-          SETZ  byte ptr [ECX]
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64;
+Function InterlockedCompareExchange64(Destination: Pointer; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64;
 asm
 {$IFDEF x64}
 
@@ -6688,11 +5617,11 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal128}
 
-Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128;
+Function InterlockedCompareExchange128(Destination: Pointer; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128;
 asm
 {$IFDEF Windows}
 {
@@ -6762,230 +5691,80 @@ end;
 
 {$ENDIF}
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, Comparand
-
-    LOCK  CMPXCHG qword ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          MOV   EDX, Exchanged
-          SETZ  byte ptr [EDX]
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean;
-asm
-{$IFDEF x64}
-
-          MOV   AL, Comparand
-
-    LOCK  CMPXCHG byte ptr [Destination], Exchange
-
-          SETZ  byte ptr [Exchanged]
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          MOV   EDX, Exchanged
-          SETZ  byte ptr [EDX]
-
+Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedCompareExchange64(Destination,UInt64(Exchange),UInt64(Comparand),Exchanged));
+{$ELSE}
+Result := Pointer(InterlockedCompareExchange32(Destination,UInt32(Exchange),UInt32(Comparand),Exchanged));
 {$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
 
-Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8;
-asm
-{$IFDEF x64}
+Function InterlockedCompareExchangeBool(Destination: Pointer; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean;
+begin
+Result := Boolean(InterlockedCompareExchange8(Destination,UInt8(Exchange),UInt8(Comparand),Exchanged));
+end;
 
-          MOV   AL, Comparand
+//==============================================================================
 
-    LOCK  CMPXCHG byte ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8; out Exchanged: Boolean): UInt8;
+begin
+Result := InterlockedCompareExchange8(@Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8): Int8;
-asm
-{$IFDEF x64}
-
-          MOV   AL, Comparand
-
-    LOCK  CMPXCHG byte ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8; out Exchanged: Boolean): Int8;
+begin
+Result := Int8(InterlockedCompareExchange8(@Destination,UInt8(Exchange),UInt8(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, Comparand
-
-    LOCK  CMPXCHG word ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16; out Exchanged: Boolean): UInt16;
+begin
+Result := InterlockedCompareExchange16(@Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16): Int16;
-asm
-{$IFDEF x64}
-
-          MOV   AX, Comparand
-
-    LOCK  CMPXCHG word ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16; out Exchanged: Boolean): Int16;
+begin
+Result := Int16(InterlockedCompareExchange16(@Destination,UInt16(Exchange),UInt16(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, Comparand
-
-    LOCK  CMPXCHG dword ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32; out Exchanged: Boolean): UInt32;
+begin
+Result := InterlockedCompareExchange32(@Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32): Int32;
-asm
-{$IFDEF x64}
-
-          MOV   EAX, Comparand
-
-    LOCK  CMPXCHG dword ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32; out Exchanged: Boolean): Int32;
+begin
+Result := Int32(InterlockedCompareExchange32(@Destination,UInt32(Exchange),UInt32(Comparand),Exchanged));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, Comparand
-
-    LOCK  CMPXCHG qword ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-          MOV   EAX, dword ptr [Comparand]
-          MOV   EDX, dword ptr [Comparand + 4]
-
-          MOV   EBX, dword ptr [Exchange]
-          MOV   ECX, dword ptr [Exchange + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64; out Exchanged: Boolean): UInt64;
+begin
+Result := InterlockedCompareExchange64(@Destination,Exchange,Comparand,Exchanged);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, Comparand
-
-    LOCK  CMPXCHG qword ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-          MOV   EAX, dword ptr [Comparand]
-          MOV   EDX, dword ptr [Comparand + 4]
-
-          MOV   EBX, dword ptr [Exchange]
-          MOV   ECX, dword ptr [Exchange + 4]
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64; out Exchanged: Boolean): Int64;
+begin
+Result := Int64(InterlockedCompareExchange64(@Destination,UInt64(Exchange),UInt64(Comparand),Exchanged));
 end;
 
 {$ENDIF}
@@ -6994,7 +5773,124 @@ end;
 
 {$IFDEF IncludeVal128}
 
-Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128;
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128; out Exchanged: Boolean): UInt128;
+begin
+Result := InterlockedCompareExchange128(@Destination,Exchange,Comparand,Exchanged);
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer; out Exchanged: Boolean): Pointer;
+begin
+Result := InterlockedCompareExchangePtr(@Destination,Exchange,Comparand,Exchanged);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean; out Exchanged: Boolean): Boolean;
+begin
+Result := InterlockedCompareExchangeBool(@Destination,Exchange,Comparand,Exchanged);
+end;
+
+//==============================================================================
+
+Function InterlockedCompareExchange8(Destination: Pointer; Exchange,Comparand: UInt8): UInt8;
+asm
+{$IFDEF x64}
+
+          MOV   AL, Comparand
+
+    LOCK  CMPXCHG byte ptr [Destination], Exchange
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          XCHG  EAX, ECX
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedCompareExchange16(Destination: Pointer; Exchange,Comparand: UInt16): UInt16;
+asm
+{$IFDEF x64}
+
+          MOV   AX, Comparand
+
+    LOCK  CMPXCHG word ptr [Destination], Exchange
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          XCHG  EAX, ECX
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedCompareExchange32(Destination: Pointer; Exchange,Comparand: UInt32): UInt32;
+asm
+{$IFDEF x64}
+
+          MOV   EAX, Comparand
+
+    LOCK  CMPXCHG dword ptr [Destination], Exchange
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          XCHG  EAX, ECX
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedCompareExchange64(Destination: Pointer; Exchange,Comparand: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+          MOV   RAX, Comparand
+
+    LOCK  CMPXCHG qword ptr [Destination], Exchange
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+          MOV   EAX, dword ptr [Comparand]
+          MOV   EDX, dword ptr [Comparand + 4]
+
+          MOV   EBX, dword ptr [Exchange]
+          MOV   ECX, dword ptr [Exchange + 4]
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal128}
+
+Function InterlockedCompareExchange128(Destination: Pointer; Exchange,Comparand: UInt128): UInt128;
 asm
 {$IFDEF Windows}
 
@@ -7036,42 +5932,107 @@ end;
 
 {$ENDIF}
 
+//------------------------------------------------------------------------------
+
+Function InterlockedCompareExchangePtr(Destination: Pointer; Exchange,Comparand: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedCompareExchange64(Destination,UInt64(Exchange),UInt64(Comparand)));
+{$ELSE}
+Result := Pointer(InterlockedCompareExchange32(Destination,UInt32(Exchange),UInt32(Comparand)));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedCompareExchangeBool(Destination: Pointer; Exchange,Comparand: Boolean): Boolean;
+begin
+Result := Boolean(InterlockedCompareExchange8(Destination,UInt8(Exchange),UInt8(Comparand)));
+end;
+
+//==============================================================================
+
+Function InterlockedCompareExchange(var Destination: UInt8; Exchange,Comparand: UInt8): UInt8;
+begin
+Result := InterlockedCompareExchange8(@Destination,Exchange,Comparand);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Int8; Exchange,Comparand: Int8): Int8;
+begin
+Result := Int8(InterlockedCompareExchange8(@Destination,UInt8(Exchange),UInt8(Comparand)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: UInt16; Exchange,Comparand: UInt16): UInt16;
+begin
+Result := InterlockedCompareExchange16(@Destination,Exchange,Comparand);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Int16; Exchange,Comparand: Int16): Int16;
+begin
+Result := Int16(InterlockedCompareExchange16(@Destination,UInt16(Exchange),UInt16(Comparand)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: UInt32; Exchange,Comparand: UInt32): UInt32;
+begin
+Result := InterlockedCompareExchange32(@Destination,Exchange,Comparand);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Int32; Exchange,Comparand: Int32): Int32;
+begin
+Result := Int32(InterlockedCompareExchange32(@Destination,UInt32(Exchange),UInt32(Comparand)));
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedCompareExchange(var Destination: UInt64; Exchange,Comparand: UInt64): UInt64;
+begin
+Result := InterlockedCompareExchange64(@Destination,Exchange,Comparand);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedCompareExchange(var Destination: Int64; Exchange,Comparand: Int64): Int64;
+begin
+Result := Int64(InterlockedCompareExchange64(@Destination,UInt64(Exchange),UInt64(Comparand)));
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal128}
+
+Function InterlockedCompareExchange(var Destination: UInt128; Exchange,Comparand: UInt128): UInt128;
+begin
+Result := InterlockedCompareExchange128(@Destination,Exchange,Comparand);
+end;
+
+{$ENDIF}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedCompareExchange(var Destination: Pointer; Exchange,Comparand: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          MOV   RAX, Comparand
-
-    LOCK  CMPXCHG qword ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-{$ENDIF}
+begin
+Result := InterlockedCompareExchangePtr(@Destination,Exchange,Comparand);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand: Boolean): Boolean;
-asm
-{$IFDEF x64}
-
-          MOV   AL, Comparand
-
-    LOCK  CMPXCHG byte ptr [Destination], Exchange
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XCHG  EAX, ECX
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-{$ENDIF}
+begin
+Result := InterlockedCompareExchangeBool(@Destination,Exchange,Comparand);
 end;
 
 
@@ -7081,7 +6042,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean;
+Function InterlockedBitTest8(I: Pointer; Bit: Integer): Boolean;
 asm
 {$IFDEF x64}
 
@@ -7106,36 +6067,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedBitTest(var I: Int8; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          XOR   AL, AL
-    LOCK  XADD  byte ptr [I], AL
-
-          AND   Bit, 7
-          BT    AX, Bit
-
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XOR   CL, CL
-    LOCK  XADD  byte ptr [EAX], CL
-
-          AND   Bit, 7
-          BT    CX, Bit
-
-          SETC  AL
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedBitTest(var I: UInt16; Bit: Integer): Boolean;
+Function InterlockedBitTest16(I: Pointer; Bit: Integer): Boolean;
 asm
 {$IFDEF x64}
 
@@ -7158,34 +6092,9 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
-Function InterlockedBitTest(var I: Int16; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          XOR   AX, AX
-    LOCK  XADD  word ptr [I], AX
-
-          BT    AX, Bit
-
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XOR   CX, CX
-    LOCK  XADD  word ptr [EAX], CX
-
-          BT    CX, Bit
-
-          SETC  AL
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedBitTest(var I: UInt32; Bit: Integer): Boolean;
+Function InterlockedBitTest32(I: Pointer; Bit: Integer): Boolean;
 asm
 {$IFDEF x64}
 
@@ -7208,36 +6117,11 @@ asm
 {$ENDIF}
 end;
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Function InterlockedBitTest(var I: Int32; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          XOR   EAX, EAX
-    LOCK  XADD  dword ptr [I], EAX
-
-          BT    EAX, Bit
-
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XOR   ECX, ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-
-          BT    ECX, Bit
-
-          SETC  AL
-
-{$ENDIF}
-end;
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//------------------------------------------------------------------------------
 
 {$IFDEF IncludeVal64}
 
-Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean;
+Function InterlockedBitTest64(I: Pointer; Bit: Integer): Boolean;
 asm
 {$IFDEF x64}
 
@@ -7283,52 +6167,75 @@ asm
 {$ENDIF}
 end;
 
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestPtr(I: Pointer; Bit: Integer): Boolean;
+begin
+{$IFDEF Ptr64}
+Result := InterlockedBitTest64(I,Bit);
+{$ELSE}
+Result := InterlockedBitTest32(I,Bit);
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedBitTest(var I: UInt8; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest8(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTest(var I: Int8; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest8(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTest(var I: UInt16; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest16(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTest(var I: Int16; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest16(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTest(var I: UInt32; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest32(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedBitTest(var I: Int32; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest32(@I,Bit);
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedBitTest(var I: UInt64; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTest64(@I,Bit);
+end;
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTest(var I: Int64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          XOR   RAX, RAX
-    LOCK  XADD  qword ptr [I], RAX
-
-          BT    RAX, Bit
-
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  EDX
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   ECX
-          CMP   ECX, 31
-          CMOVA EAX, EDX
-
-          AND   ECX, 31
-          BT    EAX, ECX
-
-          SETC  AL
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTest64(@I,Bit);
 end;
 
 {$ENDIF}
@@ -7336,28 +6243,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          XOR   RAX, RAX
-    LOCK  XADD  qword ptr [I], RAX
-
-          AND   Bit, 63
-          BT    RAX, Bit
-
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XOR   ECX, ECX
-    LOCK  XADD  dword ptr [EAX], ECX
-
-          AND   Bit, 31
-          BT    ECX, Bit
-
-          SETC  AL
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestPtr(@I,Bit);
 end;
 
 
@@ -7367,56 +6254,139 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean;
+Function InterlockedBitTestAndSet8(I: Pointer; Bit: Integer): Boolean;
+{$message warn 'Accesses two bytes! Reimplement!'}
 asm
           AND   Bit, 7
     LOCK  BTS   word ptr [I], Bit
           SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSet16(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTS   word ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSet32(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTS   dword ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedBitTestAndSet64(I: Pointer; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTS   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTS   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTS   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSetPtr(I: Pointer; Bit: Integer): Boolean;
+begin
+{$IFDEF Ptr64}
+Result := InterlockedBitTestAndSet64(I,Bit);
+{$ELSE}
+Result := InterlockedBitTestAndSet32(I,Bit);
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedBitTestAndSet(var I: UInt8; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTestAndSet8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: Int8; Bit: Integer): Boolean;
-asm
-          AND   Bit, 7
-    LOCK  BTS   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndSet8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: UInt16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTS   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndSet16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: Int16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTS   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndSet16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: UInt32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTS   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndSet32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: Int32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTS   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndSet32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7424,105 +6394,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndSet(var I: UInt64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTS   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTS   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTS   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndSet64(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: Int64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTS   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTS   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTS   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndSet64(@I,Bit);
 end;
 
 {$ENDIF}
@@ -7530,20 +6410,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTS   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          AND   Bit, 31
-    LOCK  BTS   dword ptr [I], Bit
-          SETC  AL
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndSetPtr(@I,Bit);
 end;
 
 
@@ -7553,56 +6421,139 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean;
+Function InterlockedBitTestAndReset8(I: Pointer; Bit: Integer): Boolean;
+{$message warn 'Accesses two bytes! Reimplement!'}
 asm
           AND   Bit, 7
     LOCK  BTR   word ptr [I], Bit
           SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndReset16(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTR   word ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndReset32(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTR   dword ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedBitTestAndReset64(I: Pointer; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTR   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTR   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTR   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndResetPtr(I: Pointer; Bit: Integer): Boolean;
+begin
+{$IFDEF Ptr64}
+Result := InterlockedBitTestAndReset64(I,Bit);
+{$ELSE}
+Result := InterlockedBitTestAndReset32(I,Bit);
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedBitTestAndReset(var I: UInt8; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTestAndReset8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: Int8; Bit: Integer): Boolean;
-asm
-          AND   Bit, 7
-    LOCK  BTR   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndReset8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: UInt16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTR   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndReset16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: Int16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTR   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndReset16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: UInt32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTR   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndReset32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: Int32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTR   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndReset32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7610,105 +6561,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndReset(var I: UInt64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTR   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTR   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTR   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndReset64(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: Int64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTR   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTR   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTR   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndReset64(@I,Bit);
 end;
 
 {$ENDIF}
@@ -7716,20 +6577,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTR   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          AND   Bit, 31
-    LOCK  BTR   dword ptr [I], Bit
-          SETC  AL
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndResetPtr(@I,Bit);
 end;
 
 
@@ -7739,56 +6588,139 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean;
+Function InterlockedBitTestAndComplement8(I: Pointer; Bit: Integer): Boolean;
+{$message warn 'Accesses two bytes! Reimplement!'}
 asm
           AND   Bit, 7
     LOCK  BTC   word ptr [I], Bit
           SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplement16(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 15
+    LOCK  BTC   word ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplement32(I: Pointer; Bit: Integer): Boolean;
+asm
+          AND   Bit, 31
+    LOCK  BTC   dword ptr [I], Bit
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedBitTestAndComplement64(I: Pointer; Bit: Integer): Boolean;
+asm
+{$IFDEF x64}
+
+          AND   Bit, 63
+    LOCK  BTC   qword ptr [I], Bit
+          SETC  AL
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+          PUSH  ESI
+
+          MOV   EDI, EAX
+          MOV   ESI, EDX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          CMP   ESI, 31
+          JA    @BitTestHigh
+
+          BTC   EBX, ESI
+          JMP   @BitTestEnd
+
+    @BitTestHigh:
+
+          BTC   ECX, ESI
+
+    @BitTestEnd:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          SETC  AL
+
+          POP   ESI
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplementPtr(I: Pointer; Bit: Integer): Boolean;
+begin
+{$IFDEF Ptr64}
+Result := InterlockedBitTestAndComplement64(I,Bit);
+{$ELSE}
+Result := InterlockedBitTestAndComplement32(I,Bit);
+{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedBitTestAndComplement(var I: UInt8; Bit: Integer): Boolean;
+begin
+Result := InterlockedBitTestAndComplement8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: Int8; Bit: Integer): Boolean;
-asm
-          AND   Bit, 7
-    LOCK  BTC   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndComplement8(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: UInt16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTC   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndComplement16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: Int16; Bit: Integer): Boolean;
-asm
-          AND   Bit, 15
-    LOCK  BTC   word ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndComplement16(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: UInt32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTC   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndComplement32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: Int32; Bit: Integer): Boolean;
-asm
-          AND   Bit, 31
-    LOCK  BTC   dword ptr [I], Bit
-          SETC  AL
+begin
+Result := InterlockedBitTestAndComplement32(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7796,105 +6728,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedBitTestAndComplement(var I: UInt64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTC   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTC   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTC   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndComplement64(@I,Bit);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTC   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-          PUSH  ESI
-
-          MOV   EDI, EAX
-          MOV   ESI, EDX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-          CMP   ESI, 31
-          JA    @BitTestHigh
-
-          BTC   EBX, ESI
-          JMP   @BitTestEnd
-
-    @BitTestHigh:
-
-          BTC   ECX, ESI
-
-    @BitTestEnd:
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          SETC  AL
-
-          POP   ESI
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndComplement64(@I,Bit);
 end;
 
 {$ENDIF}
@@ -7902,20 +6744,8 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean;
-asm
-{$IFDEF x64}
-
-          AND   Bit, 63
-    LOCK  BTC   qword ptr [I], Bit
-          SETC  AL
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          AND   Bit, 31
-    LOCK  BTC   dword ptr [I], Bit
-          SETC  AL
-
-{$ENDIF}
+begin
+Result := InterlockedBitTestAndComplementPtr(@I,Bit);
 end;
 
 
@@ -7925,56 +6755,128 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedLoad(var I: UInt8): UInt8;
+Function InterlockedLoad8(I: Pointer): UInt8;
 asm
           XOR   DL, DL
     LOCK  XADD  byte ptr [I], DL
           MOV   AL, DL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedLoad16(I: Pointer): UInt16;
+asm
+          XOR   DX, DX
+    LOCK  XADD  word ptr [I], DX
+          MOV   AX, DX
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedLoad32(I: Pointer): UInt32;
+asm
+          XOR   EDX, EDX
+    LOCK  XADD  dword ptr [I], EDX
+          MOV   EAX, EDX
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedLoad64(I: Pointer): UInt64;
+asm
+{$IFDEF x64}
+
+          XOR   RDX, RDX
+    LOCK  XADD  qword ptr [I], RDX
+          MOV   RAX, RDX
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedLoadPtr(I: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedLoad64(I));
+{$ELSE}
+Result := Pointer(InterlockedLoad32(I));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedLoadBool(I: Pointer): Boolean;
+begin
+Result := Boolean(InterlockedLoad8(I));
+end;
+
+//==============================================================================
+
+Function InterlockedLoad(var I: UInt8): UInt8;
+begin
+Result := InterlockedLoad8(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Int8): Int8;
-asm
-          XOR   DL, DL
-    LOCK  XADD  byte ptr [I], DL
-          MOV   AL, DL
+begin
+Result := Int8(InterlockedLoad8(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: UInt16): UInt16;
-asm
-          XOR   DX, DX
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
+begin
+Result := InterlockedLoad16(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Int16): Int16;
-asm
-          XOR   DX, DX
-    LOCK  XADD  word ptr [I], DX
-          MOV   AX, DX
+begin
+Result := Int16(InterlockedLoad16(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: UInt32): UInt32;
-asm
-          XOR   EDX, EDX
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
+begin
+Result := InterlockedLoad32(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Int32): Int32;
-asm
-          XOR   EDX, EDX
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
+begin
+Result := Int32(InterlockedLoad32(@I));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -7982,71 +6884,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedLoad(var I: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-          XOR   RDX, RDX
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedLoad64(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Int64): Int64;
-asm
-{$IFDEF x64}
-
-          XOR   RDX, RDX
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]
-
-          MOV   EBX, EAX
-          MOV   ECX, EDX
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedLoad64(@I));
 end;
 
 {$ENDIF}
@@ -8054,29 +6900,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-          XOR   RDX, RDX
-    LOCK  XADD  qword ptr [I], RDX
-          MOV   RAX, RDX
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          XOR   EDX, EDX
-    LOCK  XADD  dword ptr [I], EDX
-          MOV   EAX, EDX
-
-{$ENDIF}
+begin
+Result := InterlockedLoadPtr(@I);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedLoad(var I: Boolean): Boolean;
-asm
-          XOR   DL, DL
-    LOCK  XADD  byte ptr [I], DL
-          MOV   AL, DL
+begin
+Result := InterlockedLoadBool(@I);
 end;
 
 
@@ -8086,7 +6918,7 @@ end;
 --------------------------------------------------------------------------------
 ===============================================================================}
 
-Function InterlockedStore(var I: UInt8; NewValue: UInt8): UInt8;
+Function InterlockedStore8(I: Pointer; NewValue: UInt8): UInt8;
 asm
 {$IFDEF x64}
 
@@ -8111,151 +6943,167 @@ asm
           JNZ   @TryOutStart
 
 {$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedStore16(I: Pointer; NewValue: UInt16): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+
+    LOCK  CMPXCHG word ptr [I], NewValue
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedStore32(I: Pointer; NewValue: UInt32): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+
+    LOCK  CMPXCHG dword ptr [I], NewValue
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedStore64(I: Pointer; NewValue: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+
+    LOCK  CMPXCHG qword ptr [I], NewValue
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EBX, dword ptr [NewValue]
+          MOV   ECX, dword ptr [NewValue + 4]
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]          
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedStorePtr(I: Pointer; NewValue: Pointer): Pointer;
+begin
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedStore64(I,UInt64(NewValue)));
+{$ELSE}
+Result := Pointer(InterlockedStore32(I,UInt32(NewValue)));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedStoreBool(I: Pointer; NewValue: Boolean): Boolean;
+begin
+Result := Boolean(InterlockedStore8(I,UInt8(NewValue)));
+end;
+
+//==============================================================================
+
+Function InterlockedStore(var I: UInt8; NewValue: UInt8): UInt8;
+begin
+Result := InterlockedStore8(@I,NewValue);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Int8; NewValue: Int8): Int8;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-    LOCK  CMPXCHG byte ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int8(InterlockedStore8(@I,UInt8(NewValue)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: UInt16; NewValue: UInt16): UInt16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-    LOCK  CMPXCHG word ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedStore16(@I,NewValue);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Int16; NewValue: Int16): Int16;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-    LOCK  CMPXCHG word ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int16(InterlockedStore16(@I,UInt16(NewValue)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: UInt32; NewValue: UInt32): UInt32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-    LOCK  CMPXCHG dword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedStore32(@I,NewValue);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Int32; NewValue: Int32): Int32;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-    LOCK  CMPXCHG dword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := Int32(InterlockedStore32(@I,UInt32(NewValue)));
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -8263,79 +7111,15 @@ end;
 {$IFDEF IncludeVal64}
 
 Function InterlockedStore(var I: UInt64; NewValue: UInt64): UInt64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-    LOCK  CMPXCHG qword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [NewValue]
-          MOV   ECX, dword ptr [NewValue + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]          
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := InterlockedStore64(@I,NewValue);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Int64; NewValue: Int64): Int64;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-    LOCK  CMPXCHG qword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          PUSH  EBX
-          PUSH  EDI
-
-          MOV   EDI, EAX
-
-    @TryOutStart:
-
-          MOV   EBX, dword ptr [NewValue]
-          MOV   ECX, dword ptr [NewValue + 4]
-
-          MOV   EAX, dword ptr [EDI]
-          MOV   EDX, dword ptr [EDI + 4]          
-
-    LOCK  CMPXCHG8B qword ptr [EDI]
-
-          JNZ   @TryOutStart
-
-          POP   EDI
-          POP   EBX
-
-{$ENDIF}
+begin
+Result := Int64(InterlockedStore64(@I,UInt64(NewValue)));
 end;
 
 {$ENDIF}
@@ -8343,59 +7127,15 @@ end;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-    LOCK  CMPXCHG qword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedStorePtr(@I,NewValue);
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean;
-asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-    LOCK  CMPXCHG byte ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+begin
+Result := InterlockedStoreBool(@I,NewValue);
 end;
 
 
