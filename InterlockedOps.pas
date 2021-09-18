@@ -202,12 +202,6 @@ uses
   SysUtils,
   AuxTypes;
 
-{$IF SizeOf(Pointer) = 8}
-  {$DEFINE Ptr64}
-{$ELSEIF SizeOf(Pointer) <> 4}
-  {$MESSAGE FATAL 'Unsupported size of pointers.'}
-{$IFEND}
-
 {===============================================================================
     Informative public constants
 ===============================================================================}
@@ -1103,6 +1097,9 @@ Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand
     Returns value of bit (True = 1/set, False = 0/clear) selected by a parameter
     Bit in variable (pointed to by) I.
 
+    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
+    position, depending on the width of the variable.
+
 -------------------------------------------------------------------------------}
 
 Function InterlockedBitTest8(I: Pointer; Bit: Integer): Boolean; register; assembler;
@@ -1143,6 +1140,9 @@ Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload;{$I
     Sets a bit (changes it to 1) selected by a parameter Bit in variable
     (pointed to by) I and returns original value of this bit.
 
+    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
+    position, depending on the width of the variable.
+
 -------------------------------------------------------------------------------}
 
 Function InterlockedBitTestAndSet8(I: Pointer; Bit: Integer): Boolean; register; assembler;
@@ -1182,6 +1182,9 @@ Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overlo
 
     Resets/clears a bit (changes it to 0) selected by a parameter Bit in
     variable (pointed to by) I and returns original value of this bit.
+
+    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
+    position, depending on the width of the variable.
 
 -------------------------------------------------------------------------------}
 
@@ -1224,6 +1227,9 @@ Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; over
     vice-versa) selected by a parameter Bit in variable (pointed to by) I and
     returns original value of this bit.
 
+    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
+    position, depending on the width of the variable.
+        
 -------------------------------------------------------------------------------}
 
 Function InterlockedBitTestAndComplement8(I: Pointer; Bit: Integer): Boolean; register; assembler;
@@ -1343,6 +1349,13 @@ implementation
 uses
   SimpleCPUID;
 {$ENDIF}
+
+// following cannot go any higner because of older FPC (internal error 200501152)
+{$IF SizeOf(Pointer) = 8}
+  {$DEFINE Ptr64}
+{$ELSEIF SizeOf(Pointer) <> 4}
+  {$MESSAGE FATAL 'Unsupported size of pointers.'}
+{$IFEND}
 
 {$IFDEF FPC_DisableWarns}
   {$DEFINE FPCDWM}
@@ -6302,11 +6315,50 @@ end;
 ===============================================================================}
 
 Function InterlockedBitTestAndSet8(I: Pointer; Bit: Integer): Boolean;
-{$message warn 'Accesses two bytes! Reimplement!'}
 asm
+{$IFDEF x64}
+
           AND   Bit, 7
-    LOCK  BTS   word ptr [I], Bit
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   R8B, AL
+          BTS   R8W, Bit
+
+    LOCK  CMPXCHG byte ptr [I], R8B
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
+          SETC  AL    
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+          AND   Bit, 7
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          BTS   BX, Bit
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
           SETC  AL
+
+          POP   EBX
+
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -6347,6 +6399,7 @@ asm
 
           MOV   EDI, EAX
           MOV   ESI, EDX
+          AND   ESI, 63
 
     @TryOutStart:
 
@@ -6469,11 +6522,50 @@ end;
 ===============================================================================}
 
 Function InterlockedBitTestAndReset8(I: Pointer; Bit: Integer): Boolean;
-{$message warn 'Accesses two bytes! Reimplement!'}
 asm
+{$IFDEF x64}
+
           AND   Bit, 7
-    LOCK  BTR   word ptr [I], Bit
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   R8B, AL
+          BTR   R8W, Bit
+
+    LOCK  CMPXCHG byte ptr [I], R8B
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
+          SETC  AL    
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+          AND   Bit, 7
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          BTR   BX, Bit
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
           SETC  AL
+
+          POP   EBX
+
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -6514,6 +6606,7 @@ asm
 
           MOV   EDI, EAX
           MOV   ESI, EDX
+          AND   ESI, 63
 
     @TryOutStart:
 
@@ -6636,11 +6729,50 @@ end;
 ===============================================================================}
 
 Function InterlockedBitTestAndComplement8(I: Pointer; Bit: Integer): Boolean;
-{$message warn 'Accesses two bytes! Reimplement!'}
 asm
+{$IFDEF x64}
+
           AND   Bit, 7
-    LOCK  BTC   word ptr [I], Bit
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+
+          MOV   R8B, AL
+          BTC   R8W, Bit
+
+    LOCK  CMPXCHG byte ptr [I], R8B
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
+          SETC  AL    
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+
+          MOV   ECX, EAX
+
+          AND   Bit, 7
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+
+          MOV   BL, AL
+          BTC   BX, Bit
+
+    LOCK  CMPXCHG byte ptr [ECX], BL
+
+          JNZ   @TryOutStart
+
+          BT    AX, Bit
           SETC  AL
+
+          POP   EBX
+
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
@@ -6681,6 +6813,7 @@ asm
 
           MOV   EDI, EAX
           MOV   ESI, EDX
+          AND   ESI, 63
 
     @TryOutStart:
 
