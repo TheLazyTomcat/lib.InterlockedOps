@@ -44,9 +44,9 @@
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.1 (2021-04-24)
+  Version 1.2 (2021-09-19)
 
-  Last change 2021-04-24
+  Last change 2021-09-19
 
   ©2021 František Milt
 
@@ -98,6 +98,10 @@ unit InterlockedOps;
 {$IF Defined(WINDOWS) or Defined(MSWINDOWS)}
   {$DEFINE Windows}
 {$IFEND}
+
+{$IFOPT Q+}
+  {$DEFINE OverflowChecks}
+{$ENDIF}
 
 {$IFDEF FPC}
   {$MODE ObjFPC}
@@ -1094,11 +1098,12 @@ Function InterlockedCompareExchange(var Destination: Boolean; Exchange,Comparand
 
   InterlockedBitTest
 
-    Returns value of bit (True = 1/set, False = 0/clear) selected by a parameter
-    Bit in variable (pointed to by) I.
+    Returns value of bit (True = 1/set, False = 0/clear) selected by
+    a parameter Bit in variable (pointed to by) I.
 
-    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
-    position, depending on the width of the variable.
+    Actual bit position in masked so only lowest 3, 4, 5 or 6 bits, depending
+    on the width of the variable, of the passed Bit parameter are used,
+    effectively taking modulo 8, 16, 32 or 64 of the value.
 
 -------------------------------------------------------------------------------}
 
@@ -1130,6 +1135,26 @@ Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload;{$I
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                         Bit string interlocked bit test                         
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  InterlockedBitTestStr
+
+    Returns value of bit selected by a parameter BitOffset in bit string
+    pointed to by Str.
+    Length of the bit string is not explicitly limited and BitOffset can have
+    a negative value.
+
+    This function always accesses only one byte of memory.
+
+-------------------------------------------------------------------------------}
+
+Function InterlockedBitTestStr(Str: Pointer; BitOffset: PtrInt): Boolean;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                           Interlocked bit test and set
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -1140,8 +1165,9 @@ Function InterlockedBitTest(var I: Pointer; Bit: Integer): Boolean; overload;{$I
     Sets a bit (changes it to 1) selected by a parameter Bit in variable
     (pointed to by) I and returns original value of this bit.
 
-    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
-    position, depending on the width of the variable.
+    Actual bit position in masked so only lowest 3, 4, 5 or 6 bits, depending
+    on the width of the variable, of the passed Bit parameter are used,
+    effectively taking modulo 8, 16, 32 or 64 of the value.
 
 -------------------------------------------------------------------------------}
 
@@ -1173,6 +1199,58 @@ Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overlo
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                     Bit string interlocked bit test and set
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  InterlockedBitTestAndSetStr
+
+    Sets a bit selected by paramter BitOffset in a bit string pointed to by Str
+    and returns original value of this bit.
+    Length of the bit string is not explicitly limited and BitOffset can have
+    a negative value.
+
+    For detailed information of how the memory is accessed, please refer to
+    documentation of IA-32/AMD64 processors, namely instructions BT, BTC, BTR
+    and BTS.    
+
+    WARNING - the processor might access more than the one byte necessary to
+              reach the requested bit. Depending on operand width, it can
+              access 2, 4 or 8 bytes on address that can be calculated as:
+
+                Str + (WB * (BitOffset DIV Wb))
+
+                  WB - width of the operand in bytes (2, 4 or 8)
+                  Wb - width of the operand in bits (16, 32 or 64)
+
+    NOTE - InterlockedBitTestAndSetStr without width specification (ie. number
+           in the name) will call InterlockedBitTestAndSetStr32 in 32bit
+           program and InterlockedBitTestStr64 in 64bit program.
+
+
+  InterlockedBitTestAndSetStrSec
+
+    This function is not based around a processor instruction (BTS instruction
+    does not have byte-operand version), it is merely a wrapper with similar
+    functionality.
+    Unlike its counterparts, it access only one byte - the one needed to reach
+    the requested bit - so it is more secure in this regard, but slower.
+
+-------------------------------------------------------------------------------}
+
+Function InterlockedBitTestAndSetStr16(Str: Pointer; BitOffset: Int16): Boolean; register; assembler;
+Function InterlockedBitTestAndSetStr32(Str: Pointer; BitOffset: Int32): Boolean; register; assembler;
+{$IFDEF x64}
+Function InterlockedBitTestAndSetStr64(Str: Pointer; BitOffset: Int64): Boolean; register; assembler;
+{$ENDIF}
+
+Function InterlockedBitTestAndSetStr(Str: Pointer; BitOffset: PtrInt): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndSetStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                          Interlocked bit test and reset
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -1183,8 +1261,9 @@ Function InterlockedBitTestAndSet(var I: Pointer; Bit: Integer): Boolean; overlo
     Resets/clears a bit (changes it to 0) selected by a parameter Bit in
     variable (pointed to by) I and returns original value of this bit.
 
-    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
-    position, depending on the width of the variable.
+    Actual bit position in masked so only lowest 3, 4, 5 or 6 bits, depending
+    on the width of the variable, of the passed Bit parameter are used,
+    effectively taking modulo 8, 16, 32 or 64 of the value.
 
 -------------------------------------------------------------------------------}
 
@@ -1216,6 +1295,40 @@ Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; over
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                    Bit string interlocked bit test and reset                    
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  InterlockedBitTestAndResetStr
+
+    Resets a bit selected by paramter BitOffset in a bit string pointed to by
+    Str and returns original value of this bit.
+
+    For more information refer to description of InterlockedBitTestAndSetStr.
+
+  InterlockedBitTestAndResetStrSec
+
+    This function is not based around a processor instruction (BTR instruction
+    does not have byte-operand version), it is merely a wrapper with similar
+    functionality.
+    Unlike its counterparts, it access only one byte - the one needed to reach
+    the requested bit - so it is more secure in this regard, but slower.
+
+-------------------------------------------------------------------------------}
+
+Function InterlockedBitTestAndResetStr16(Str: Pointer; BitOffset: Int16): Boolean; register; assembler;
+Function InterlockedBitTestAndResetStr32(Str: Pointer; BitOffset: Int32): Boolean; register; assembler;
+{$IFDEF x64}
+Function InterlockedBitTestAndResetStr64(Str: Pointer; BitOffset: Int64): Boolean; register; assembler;
+{$ENDIF}
+
+Function InterlockedBitTestAndResetStr(Str: Pointer; BitOffset: PtrInt): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndResetStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
+
+{===============================================================================
+--------------------------------------------------------------------------------
                       Interlocked bit test and complement
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -1227,8 +1340,9 @@ Function InterlockedBitTestAndReset(var I: Pointer; Bit: Integer): Boolean; over
     vice-versa) selected by a parameter Bit in variable (pointed to by) I and
     returns original value of this bit.
 
-    Actual bit position is taken as modulo 8, 16, 32 or 64 of the passed bit
-    position, depending on the width of the variable.
+    Actual bit position in masked so only lowest 3, 4, 5 or 6 bits, depending
+    on the width of the variable, of the passed Bit parameter are used,
+    effectively taking modulo 8, 16, 32 or 64 of the value.
         
 -------------------------------------------------------------------------------}
 
@@ -1257,6 +1371,40 @@ Function InterlockedBitTestAndComplement(var I: Int64; Bit: Integer): Boolean; o
 {$ENDIF}
 
 Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                 Bit string interlocked bit test and complement
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  InterlockedBitTestAndComplementStr
+
+    Complements a bit selected by paramter BitOffset in a bit string pointed
+    to by Str and returns original value of this bit.
+
+    For more information refer to description of InterlockedBitTestAndSetStr.
+
+  InterlockedBitTestAndComplementStrSec
+
+    This function is not based around a processor instruction (BTC instruction
+    does not have byte-operand version), it is merely a wrapper with similar
+    functionality.
+    Unlike its counterparts, it access only one byte - the one needed to reach
+    the requested bit - so it is more secure in this regard, but slower.
+
+-------------------------------------------------------------------------------}
+
+Function InterlockedBitTestAndComplementStr16(Str: Pointer; BitOffset: Int16): Boolean; register; assembler;
+Function InterlockedBitTestAndComplementStr32(Str: Pointer; BitOffset: Int32): Boolean; register; assembler;
+{$IFDEF x64}
+Function InterlockedBitTestAndComplementStr64(Str: Pointer; BitOffset: Int64): Boolean; register; assembler;
+{$ENDIF}
+
+Function InterlockedBitTestAndComplementStr(Str: Pointer; BitOffset: PtrInt): Boolean;{$IFDEF CanInline} inline;{$ENDIF}
+
+Function InterlockedBitTestAndComplementStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1365,7 +1513,21 @@ uses
 
 {===============================================================================
 --------------------------------------------------------------------------------
-                             Interlocked increment                              
+                              Auxiliary functions                                                            
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function SAR3(Value: PtrInt): PtrInt; register; assembler;
+asm
+          SAR   Value, 3
+{$IFDEF x64}
+          MOV   RAX, Value
+{$ENDIF}
+end;
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                             Interlocked increment
 --------------------------------------------------------------------------------
 ===============================================================================}
 
@@ -6307,6 +6469,21 @@ begin
 Result := InterlockedBitTestPtr(@I,Bit);
 end;
 
+{===============================================================================
+--------------------------------------------------------------------------------
+                         Bit string interlocked bit test                         
+--------------------------------------------------------------------------------
+===============================================================================}
+
+{$IFDEF OverflowChecks}{$Q-}{$ENDIF}
+Function InterlockedBitTestStr(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
+Result := InterlockedBitTest8(Pointer(PtrUInt(Str) + PtrUInt(SAR3(BitOffset))),Integer(BitOffset and 7));
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+end;
+{$IFDEF OverflowChecks}{$Q+}{$ENDIF}
+
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -6517,6 +6694,60 @@ end;
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                     Bit string interlocked bit test and set
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndSetStr16(Str: Pointer; BitOffset: Int16): Boolean;
+asm
+    LOCK  BTS   word ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSetStr32(Str: Pointer; BitOffset: Int32): Boolean;
+asm
+    LOCK  BTS   dword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF x64}
+
+Function InterlockedBitTestAndSetStr64(Str: Pointer; BitOffset: Int64): Boolean;
+asm
+    LOCK  BTS   qword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndSetStr(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF x64}
+Result := InterlockedBitTestAndSetStr64(Str,Int64(BitOffset));
+{$ELSE}
+Result := InterlockedBitTestAndSetStr32(Str,Int32(BitOffset));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF OverflowChecks}{$Q-}{$ENDIF}
+Function InterlockedBitTestAndSetStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
+Result := InterlockedBitTestAndSet8(Pointer(PtrUInt(Str) + PtrUInt(SAR3(BitOffset))),Integer(BitOffset and 7));
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+end;
+{$IFDEF OverflowChecks}{$Q+}{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
                          Interlocked bit test and reset
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -6724,6 +6955,61 @@ end;
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                    Bit string interlocked bit test and reset                    
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndResetStr16(Str: Pointer; BitOffset: Int16): Boolean;
+asm
+    LOCK  BTR   word ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndResetStr32(Str: Pointer; BitOffset: Int32): Boolean;
+asm
+    LOCK  BTR   dword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF x64}
+
+Function InterlockedBitTestAndResetStr64(Str: Pointer; BitOffset: Int64): Boolean;
+asm
+    LOCK  BTR   qword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndResetStr(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF x64}
+Result := InterlockedBitTestAndResetStr64(Str,Int64(BitOffset));
+{$ELSE}
+Result := InterlockedBitTestAndResetStr32(Str,Int32(BitOffset));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF OverflowChecks}{$Q-}{$ENDIF}
+Function InterlockedBitTestAndResetStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
+Result := InterlockedBitTestAndReset8(Pointer(PtrUInt(Str) + PtrUInt(SAR3(BitOffset))),Integer(BitOffset and 7));
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+end;
+{$IFDEF OverflowChecks}{$Q+}{$ENDIF}
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
                       Interlocked bit test and complement
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -6927,6 +7213,61 @@ Function InterlockedBitTestAndComplement(var I: Pointer; Bit: Integer): Boolean;
 begin
 Result := InterlockedBitTestAndComplementPtr(@I,Bit);
 end;
+
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                 Bit string interlocked bit test and complement
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedBitTestAndComplementStr16(Str: Pointer; BitOffset: Int16): Boolean;
+asm
+    LOCK  BTC   word ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplementStr32(Str: Pointer; BitOffset: Int32): Boolean;
+asm
+    LOCK  BTC   dword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF x64}
+
+Function InterlockedBitTestAndComplementStr64(Str: Pointer; BitOffset: Int64): Boolean;
+asm
+    LOCK  BTC   qword ptr [Str], BitOffset
+          SETC  AL
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedBitTestAndComplementStr(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF x64}
+Result := InterlockedBitTestAndComplementStr64(Str,Int64(BitOffset));
+{$ELSE}
+Result := InterlockedBitTestAndComplementStr32(Str,Int32(BitOffset));
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF OverflowChecks}{$Q-}{$ENDIF}
+Function InterlockedBitTestAndComplementStrSec(Str: Pointer; BitOffset: PtrInt): Boolean;
+begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
+Result := InterlockedBitTestAndComplement8(Pointer(PtrUInt(Str) + PtrUInt(SAR3(BitOffset))),Integer(BitOffset and 7));
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+end;
+{$IFDEF OverflowChecks}{$Q+}{$ENDIF}
 
 
 {===============================================================================
