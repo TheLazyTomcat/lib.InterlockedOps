@@ -44,9 +44,9 @@
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.2 (2021-09-19)
+  Version 1.3 (2021-11-06)
 
-  Last change 2021-09-19
+  Last change 2021-11-06
 
   ©2021 František Milt
 
@@ -321,6 +321,58 @@ Function InterlockedDecrement(var I: Int64): Int64; overload;{$IFDEF CanInline} 
 {$ENDIF}
 
 Function InterlockedDecrement(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                        Interlocked decrement if positive
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  InterlockedDecrementIfPositive
+
+    Decrements variable (pointed to by) I by one, but only when it is
+    greater/above 0, and returns the original value - note that this differs
+    from normal decrement, where the new value is returned. This is to allow
+    checks whether the decrement actually took place or not.
+
+    Function behaves differently for signed and unsigned integers. For example,
+    signed value of -1 will NOT be decremented, whereas the same value as
+    unsigned (255 for 8bit integer) will be decremented.
+
+    Variants accepting only pointer are treating the pointed variable as
+    unsigned integer, pointers are also treated as unsigned integers.
+
+    WARNING - Unlike InterlockedDecrement, this function returns the original
+              value of I, not the new value!
+
+-------------------------------------------------------------------------------}
+
+Function InterlockedDecrementIfPositive8(I: Pointer): UInt8;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrementIfPositive16(I: Pointer): UInt16;{$IFDEF CanInline} inline;{$ENDIF}
+Function InterlockedDecrementIfPositive32(I: Pointer): UInt32;{$IFDEF CanInline} inline;{$ENDIF}
+{$IFDEF IncludeVal64}
+Function InterlockedDecrementIfPositive64(I: Pointer): UInt64;{$IFDEF CanInline} inline;{$ENDIF}
+{$ENDIF}
+Function InterlockedDecrementIfPositivePtr(I: Pointer): Pointer;{$IFDEF CanInline} inline;{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrementIfPositive(var I: UInt8): UInt8; overload; register; assembler;
+Function InterlockedDecrementIfPositive(var I: Int8): Int8; overload; register; assembler;
+
+Function InterlockedDecrementIfPositive(var I: UInt16): UInt16; overload; register; assembler;
+Function InterlockedDecrementIfPositive(var I: Int16): Int16; overload; register; assembler;
+
+Function InterlockedDecrementIfPositive(var I: UInt32): UInt32; overload; register; assembler;
+Function InterlockedDecrementIfPositive(var I: Int32): Int32; overload; register; assembler;
+
+{$IFDEF IncludeVal64}
+Function InterlockedDecrementIfPositive(var I: UInt64): UInt64; overload; register; assembler;
+Function InterlockedDecrementIfPositive(var I: Int64): Int64; overload; register; assembler;
+{$ENDIF}
+
+Function InterlockedDecrementIfPositive(var I: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -1846,6 +1898,465 @@ begin
 Result := InterlockedDecrementPtr(@I);
 end;
 
+{===============================================================================
+--------------------------------------------------------------------------------
+                        Interlocked decrement if positive
+--------------------------------------------------------------------------------
+===============================================================================}
+
+Function InterlockedDecrementIfPositive8(I: Pointer): UInt8;
+begin
+Result := InterlockedDecrementIfPositive(UInt8(I^));
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrementIfPositive16(I: Pointer): UInt16;
+begin
+Result := InterlockedDecrementIfPositive(UInt16(I^));
+end;
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrementIfPositive32(I: Pointer): UInt32;
+begin
+Result := InterlockedDecrementIfPositive(UInt32(I^));
+end;
+
+//------------------------------------------------------------------------------
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedDecrementIfPositive64(I: Pointer): UInt64;
+begin
+Result := InterlockedDecrementIfPositive(UInt64(I^));
+end;
+
+{$ENDIF}
+
+//------------------------------------------------------------------------------
+
+Function InterlockedDecrementIfPositivePtr(I: Pointer): Pointer;
+begin
+{$IFDEF FPCDWM}{$PUSH}W4055{$ENDIF}
+{$IFDEF Ptr64}
+Result := Pointer(InterlockedDecrementIfPositive64(I));
+{$ELSE}
+Result := Pointer(InterlockedDecrementIfPositive32(I));
+{$ENDIF}
+{$IFDEF FPCDWM}{$POP}{$ENDIF}
+end;
+
+//==============================================================================
+
+Function InterlockedDecrementIfPositive(var I: UInt8): UInt8;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+          MOV   DL, AL
+
+          TEST  DL, DL
+          JZ    @CompareEx
+
+          DEC   DL
+
+    @CompareEx:
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+          MOV   DL, AL
+
+          TEST  DL, DL
+          JZ    @CompareEx
+
+          DEC   DL
+
+    @CompareEx:
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: Int8): Int8;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [I]
+          MOV   DL, AL
+
+          CMP   DL, 0
+          JLE   @CompareEx
+
+          DEC   DL
+
+    @CompareEx:
+
+    LOCK  CMPXCHG byte ptr [I], DL
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AL, byte ptr [ECX]
+          MOV   DL, AL
+
+          CMP   DL, 0
+          JLE   @CompareEx
+
+          DEC   DL
+
+    @CompareEx:
+
+    LOCK  CMPXCHG byte ptr [ECX], DL
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: UInt16): UInt16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+          MOV   DX, AX
+
+          TEST  DX, DX
+          JZ    @CompareEx
+
+          DEC   DX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+          MOV   DX, AX
+
+          TEST  DX, DX
+          JZ    @CompareEx
+
+          DEC   DX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: Int16): Int16;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [I]
+          MOV   DX, AX
+
+          CMP   DX, 0
+          JLE   @CompareEx
+
+          DEC   DX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG word ptr [I], DX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   AX, word ptr [ECX]
+          MOV   DX, AX
+
+          CMP   DX, 0
+          JLE   @CompareEx
+
+          DEC   DX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG word ptr [ECX], DX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: UInt32): UInt32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+          MOV   EDX, EAX
+
+          TEST  EDX, EDX
+          JZ    @CompareEx
+
+          DEC   EDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+          MOV   EDX, EAX
+
+          TEST  EDX, EDX
+          JZ    @CompareEx
+
+          DEC   EDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: Int32): Int32;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [I]
+          MOV   EDX, EAX
+
+          CMP   EDX, 0
+          JLE   @CompareEx
+
+          DEC   EDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG dword ptr [I], EDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          MOV   ECX, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [ECX]
+          MOV   EDX, EAX
+
+          CMP   EDX, 0
+          JLE   @CompareEx
+
+          DEC   EDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG dword ptr [ECX], EDX
+
+          JNZ   @TryOutStart
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+{$IFDEF IncludeVal64}
+
+Function InterlockedDecrementIfPositive(var I: UInt64): UInt64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+          MOV   RDX, RAX
+
+          TEST  RDX, RDX
+          JZ    @CompareEx
+
+          DEC   RDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+          TEST  EBX, EBX
+          JNZ   @Decrement
+          TEST  ECX, ECX
+          JZ    @CompareEx
+
+    @Decrement:
+
+          SUB   EBX, 1
+          SBB   ECX, 0
+
+    @CompareEx:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: Int64): Int64;
+asm
+{$IFDEF x64}
+
+    @TryOutStart:
+
+          MOV   RAX, qword ptr [I]
+          MOV   RDX, RAX
+
+          CMP   RDX, 0
+          JLE   @CompareEx
+
+          DEC   RDX
+
+    @CompareEx:
+
+    LOCK  CMPXCHG qword ptr [I], RDX
+
+          JNZ   @TryOutStart
+
+{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+          PUSH  EBX
+          PUSH  EDI
+
+          MOV   EDI, EAX
+
+    @TryOutStart:
+
+          MOV   EAX, dword ptr [EDI]
+          MOV   EDX, dword ptr [EDI + 4]
+          MOV   EBX, EAX
+          MOV   ECX, EDX
+
+        {
+          First compare high 32bit signed integer to 0.
+
+          If it is negative, then entire number is negative and we can skip the
+          subtraction. If it is positive, do the decrement right avay because
+          entire number is positive. If it is zero, we have to also check the
+          lower integer (it is enough to test for zero).
+
+          If the lower integer is zero, then entire number is zero and skip the
+          decrement, otherwise perform it.
+        }
+          CMP   ECX, 0
+          JL    @CompareEx
+          JG    @Decrement
+
+          // higher 32bits are zero
+          TEST  EBX, EBX
+          JZ    @CompareEx
+
+    @Decrement:
+
+          SUB   EBX, 1
+          SBB   ECX, 0
+
+    @CompareEx:
+
+    LOCK  CMPXCHG8B qword ptr [EDI]
+
+          JNZ   @TryOutStart
+
+          POP   EDI
+          POP   EBX
+
+{$ENDIF}
+end;
+
+{$ENDIF}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Function InterlockedDecrementIfPositive(var I: Pointer): Pointer;
+begin
+Result := InterlockedDecrementIfPositivePtr(@I);
+end;
 
 {===============================================================================
 --------------------------------------------------------------------------------
@@ -2054,7 +2565,7 @@ end;
 Function InterlockedAdd(var A: Pointer; B: Pointer): Pointer;
 begin
 Result := InterlockedAddPtr(@A,B);
-end;  
+end;
 
 
 {===============================================================================
