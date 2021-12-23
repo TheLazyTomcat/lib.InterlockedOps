@@ -44,9 +44,9 @@
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.4 (2021-12-11)
+  Version 1.4.1 (2021-12-23)
 
-  Last change 2021-12-11
+  Last change 2021-12-23
 
   ©2021 František Milt
 
@@ -1620,6 +1620,45 @@ Function InterlockedStore(var I: Int64; NewValue: Int64): Int64; overload;{$IFDE
 Function InterlockedStore(var I: Pointer; NewValue: Pointer): Pointer; overload;{$IFDEF CanInline} inline;{$ENDIF}
 
 Function InterlockedStore(var I: Boolean; NewValue: Boolean): Boolean; overload;{$IFDEF CanInline} inline;{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
+                                Utility funtions
+--------------------------------------------------------------------------------
+===============================================================================}
+{-------------------------------------------------------------------------------
+
+  ReadBarrier
+
+    Calling this function guarantees that all memory loads issued prior the
+    call will be complete before next load operation after the call.
+
+-------------------------------------------------------------------------------}
+
+procedure ReadBarrier; register; assembler;
+
+{-------------------------------------------------------------------------------
+
+  WriteBarrier
+
+    Calling this function guarantees that all memory stores issued prior the
+    call will be complete before next store operation after the call.
+
+-------------------------------------------------------------------------------}
+
+procedure WriteBarrier; register assembler;
+
+{-------------------------------------------------------------------------------
+
+  ReadWriteBarrier
+
+    Calling this function guarantees that all memory loads and stores issued
+    prior the call will be complete before next load or store operation after
+    the call.
+
+-------------------------------------------------------------------------------}
+
+procedure ReadWriteBarrier; register assembler;
 
 implementation
 
@@ -8430,6 +8469,46 @@ end;
 
 {===============================================================================
 --------------------------------------------------------------------------------
+                                Utility funtions
+--------------------------------------------------------------------------------
+===============================================================================}
+
+{$IFOPT W+}
+  {$DEFINE StackFramesOn}
+{$ELSE}
+  {$UNDEF StackFramesOn}
+{$ENDIF}
+
+{$STACKFRAMES OFF}
+
+procedure ReadBarrier; assembler; {$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}{$IFNDEF FPC}.NOFRAME{$ENDIF}{$ENDIF}
+  LFENCE
+end;
+
+//------------------------------------------------------------------------------
+
+procedure WriteBarrier; assembler; {$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}{$IFNDEF FPC}.NOFRAME{$ENDIF}{$ENDIF}
+  SFENCE
+end;
+
+//------------------------------------------------------------------------------
+
+procedure ReadWriteBarrier; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}{$IFNDEF FPC}.NOFRAME{$ENDIF}{$ENDIF}
+  MFENCE
+end;
+
+{$IFDEF StackFramesOn}
+  {$STACKFRAMES ON}
+{$ENDIF}
+
+{===============================================================================
+--------------------------------------------------------------------------------
                               Unit initialization
 --------------------------------------------------------------------------------
 ===============================================================================}
@@ -8453,6 +8532,10 @@ try
   If not Info.ProcessorFeatures.CMPXCHG16B then
     raise EILOUnsupportedInstruction.Create('Instruction CMPXCHG16B is not supported by the CPU.');
 {$ENDIF}
+  If not Info.ProcessorFeatures.SSE2 then
+    raise EILOUnsupportedInstruction.Create('Instructions LFENCE and MFENCE are not supported by the CPU.');
+  If not Info.ProcessorFeatures.SSE then
+    raise EILOUnsupportedInstruction.Create('Instruction SFENCE is not supported by the CPU.');
 finally
   Free;
 end;
