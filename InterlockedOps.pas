@@ -44,11 +44,11 @@
     thread(s). Whatever the function returns is a state that was valid during
     the internal lock.
 
-  Version 1.4.1 (2021-12-23)
+  Version 1.4.2 (2022-02-21)
 
-  Last change 2021-12-23
+  Last change 2022-02-21
 
-  ©2021 František Milt
+  ©2021-2022 František Milt
 
   Contacts:
     František Milt: frantisek.milt@gmail.com
@@ -8246,87 +8246,24 @@ end;
 
 Function InterlockedStore8(I: Pointer; NewValue: UInt8): UInt8;
 asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [I]
-
-    LOCK  CMPXCHG byte ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AL, byte ptr [ECX]
-
-    LOCK  CMPXCHG byte ptr [ECX], DL
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+    LOCK  XCHG  byte ptr [I], NewValue
+          MOV   AL, NewValue
 end;
 
 //------------------------------------------------------------------------------
 
 Function InterlockedStore16(I: Pointer; NewValue: UInt16): UInt16;
 asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [I]
-
-    LOCK  CMPXCHG word ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   AX, word ptr [ECX]
-
-    LOCK  CMPXCHG word ptr [ECX], DX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+    LOCK  XCHG  word ptr [I], NewValue
+          MOV   AX, NewValue
 end;
 
 //------------------------------------------------------------------------------
 
 Function InterlockedStore32(I: Pointer; NewValue: UInt32): UInt32;
 asm
-{$IFDEF x64}
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [I]
-
-    LOCK  CMPXCHG dword ptr [I], NewValue
-
-          JNZ   @TryOutStart
-
-{$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
-          MOV   ECX, EAX
-
-    @TryOutStart:
-
-          MOV   EAX, dword ptr [ECX]
-
-    LOCK  CMPXCHG dword ptr [ECX], EDX
-
-          JNZ   @TryOutStart
-
-{$ENDIF}
+    LOCK  XCHG  dword ptr [I], NewValue
+          MOV   EAX, NewValue
 end;
 
 //------------------------------------------------------------------------------
@@ -8337,13 +8274,8 @@ Function InterlockedStore64(I: Pointer; NewValue: UInt64): UInt64;
 asm
 {$IFDEF x64}
 
-    @TryOutStart:
-
-          MOV   RAX, qword ptr [I]
-
-    LOCK  CMPXCHG qword ptr [I], NewValue
-
-          JNZ   @TryOutStart
+    LOCK  XCHG  qword ptr [I], NewValue
+          MOV   RAX, NewValue
 
 {$ELSE}// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
