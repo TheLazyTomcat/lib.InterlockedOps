@@ -46,7 +46,7 @@
 
   Version 1.4.2 (2022-02-21)
 
-  Last change 2022-02-21
+  Last change 2022-06-25
 
   ©2021-2022 František Milt
 
@@ -142,8 +142,14 @@ unit InterlockedOps;
               EILOUnsupportedInstruction is raised during unit initialization.
 
   By default enabled.
+
+  To disable/undefine this symbol in a project without changing this library,
+  define project-wide symbol InterlockedOps_EnableVal64onSys32_Off.
 }
 {$DEFINE EnableVal64onSys32}
+{$IFDEF InterlockedOps_EnableVal64onSys32_Off}
+  {$UNDEF EnableVal64onSys32}
+{$ENDIF}
 
 {
   EnableVal128
@@ -164,8 +170,14 @@ unit InterlockedOps;
               EILOUnsupportedInstruction is raised during unit initialization.
 
   By default enabled.
+
+  To disable/undefine this symbol in a project without changing this library,
+  define project-wide symbol InterlockedOps_EnableVal128_Off.
 }
 {$DEFINE EnableVal128}
+{$IFDEF InterlockedOps_EnableVal128_Off}
+  {$UNDEF EnableVal128}
+{$ENDIF}
 
 {
   AssertInstructions
@@ -182,8 +194,14 @@ unit InterlockedOps;
   virtualized guest systems).
 
   By default enabled.
+
+  To disable/undefine this symbol in a project without changing this library,
+  define project-wide symbol InterlockedOps_AssertInstructions_Off.
 }
 {$DEFINE AssertInstructions}
+{$IFDEF InterlockedOps_AssertInstructions_Off}
+  {$UNDEF AssertInstructions}
+{$ENDIF}
 
 //------------------------------------------------------------------------------
 // do not touch following define checks
