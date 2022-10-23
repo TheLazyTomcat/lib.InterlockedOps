@@ -46,7 +46,7 @@
 
   Version 1.4.2 (2022-02-21)
 
-  Last change 2022-06-25
+  Last change 2022-10-23
 
   ©2021-2022 František Milt
 
@@ -214,9 +214,9 @@ unit InterlockedOps;
   {$DEFINE IncludeVal128}
 {$IFEND}
 
-{$IFDEF PurePascal}
+{$IF Defined(PurePascal) and not Defined(CompTest)}
   {$MESSAGE WARN 'This unit cannot be compiled in PurePascal mode.'}
-{$ENDIF}
+{$IFEND}
 
 interface
 
